@@ -6,8 +6,9 @@ export default function Document() {
                 <meta charSet="utf-8" />
                 <meta name="theme-color" content="#202020" />
                 <script src="https://telegram.org/js/telegram-web-app.js" />
+                <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
             </Head>
-            <body className="scroll-smooth transition-all dark:bg-zinc-900 overflow-hidden">
+            <body className="scroll-smooth transition-all dark:bg-zinc-900 text-white bg-[url(/assets/images/bg.png)] bg-no-repeat bg-cover overflow-hidden h-screen">
                 <Main />
                 <NextScript />
             </body>

@@ -1,13 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { Websocket, Color } from '../lib'
+import { Websocket, Color } from '../../lib'
 import Head from 'next/head'
-import { Background } from '../components'
+import { Background } from '../../components'
 const Wheel = dynamic(
   () => import('react-custom-roulette').then(mod => mod.Wheel),
   { ssr: false }
 )
-export default function Home() {
+export default function Roulette() {
   const ws = useContext(Websocket)
   const [WheelData, setWheelData] = useState({
     start: false,
@@ -46,8 +46,8 @@ export default function Home() {
             data={WheelData.data}
             outerBorderWidth={10}
             innerBorderColor={'green'}
-            fontSize={12}
-            textDistance={40}
+            fontSize={15}
+            textDistance={30}
             spinDuration={1}
           />
         </div>

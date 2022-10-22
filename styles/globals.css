@@ -1,3 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@supports (backdrop-filter: blur(20px)) {
+    .translucent {
+      --tw-bg-opacity: 0.8 !important;
+      backdrop-filter: saturate(180%) blur(20px);
+    }
+}
+::-webkit-scrollbar {
+    @apply w-1 h-1;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-teamdao-primary cursor-pointer;
+}
+
+.ms-200 {
+    --animate-duration: 200ms;
+}
+
+.ms-300 {
+    --animate-duration: 300ms;
+}
+
+.ms-400 {
+    --animate-duration: 400ms;
+}
+
+.ms-500 {
+    --animate-duration: 500ms;
+}
+
+.ms-600 {
+    --animate-duration: 600ms
+}
+
+.ms-700 {
+    --animate-duration: 700ms
+}
+
+.ms-800 {
+    --animate-duration: 800ms
+}
+
+.ms-900 {
+    --animate-duration: 900ms
+}
+
+.ms-slow {
+    --animate-duration: 2000ms
+}
