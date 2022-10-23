@@ -5,7 +5,7 @@
     "dev": "ts-node --project tsconfig.server.json server/app.ts",
     "build:next": "next build",
     "build": "yarn build:next && yarn build:server && yarn lint",
-    "start": "cross-env NODE_ENV=production node dist/serverapp.js",
+    "start": "cross-env NODE_ENV=production node dist/server/app.js",
     "lint": "next lint"
   },
   "dependencies": {
