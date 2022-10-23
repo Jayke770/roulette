@@ -1,3 +1,6 @@
 export { default as Color } from './Color'
 export { default as Websocket } from './Ws'
 export { default as Config } from './Config'
+export { default as ControlRoulettes } from './Control/Roulette'
+export { default as ControlWs } from './Control/Ws'
+export { default as ClientRoulettes } from './Client/Roulettes'

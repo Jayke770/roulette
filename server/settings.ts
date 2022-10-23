@@ -8,24 +8,22 @@ const dev = process.env.NODE_ENV !== 'production'
 const ORIGIN = process.env.HOST
 const app = next({ dev })
 const handle = app.getRequestHandler()
-await app.prepare()
+app.prepare()
 const server = express()
 //server settings 
 server.use(cors({
-  origin: ORIGIN
+    origin: ORIGIN
 }))
 const httpServer = createServer(server)
 const io = new Server(httpServer, {
-  cors: {
-    origin: ORIGIN
-  }
-})
-io.on("connection", (socket) => {
-  console.log(socket.id)
+    cors: {
+        origin: ORIGIN
+    }
 })
 server.all('*', (req, res) => {
-  return handle(req, res)
+    return handle(req, res)
 })
-httpServer.listen(port, () => {
-  console.log(`> Ready on ${port}`)
-})
+const ControlWs = io.of('/control')
+const ClientWs = io.of('/client')
+const x = { httpServer, ControlWs, ClientWs, port }
+export default x

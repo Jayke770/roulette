@@ -19,7 +19,7 @@ export default function Control() {
                 <ControlNavbar page={'Dashboard'} />
                 <ControlMain>
                     <div className='transition-all flex flex-col lg:grid lg:grid-cols-3 gap-4 px-2 lg:px-0'>
-                        <div className='col-span-2 p-5 bg-zinc-900 rounded-lg shadow-lg'>
+                        <div className='col-span-2 p-5'>
                             <div className='text-2xl font-medium px-3'>Top Roulettes</div>
                             <div className='grid gap-2 lg:grid-cols-2 mt-4 p-2 h-[410px] overflow-auto'>
                                 {card.map((_, i) => (
@@ -38,7 +38,7 @@ export default function Control() {
                                 ))}
                             </div>
                         </div>
-                        <div className='p-5 bg-zinc-900 rounded-lg shadow-lg'>
+                        <div className='p-5'>
                             <div className='text-2xl font-medium px-3'>Active Users</div>
                             <div className='flex flex-col gap-2 py-3 px-2 h-[425px] overflow-auto mt-4'>
                                 {card.map((_, i) => (

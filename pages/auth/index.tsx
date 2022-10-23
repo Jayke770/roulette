@@ -112,7 +112,7 @@ export default function Auth() {
             </Head>
             <div className='flex justify-center items-center h-screen w-screen p-14 transition-all'>
                 {status !== 'loading' && (
-                    <div className="animate__animated animate__fadeInUp ms-200 translucent flex w-full md:w-[400px] items-center justify-center py-10 px-10 rounded-lg dark:bg-zinc-900">
+                    <div className="animate__animated animate__fadeInUp ms-200 translucent flex w-full md:w-[400px] items-center justify-center py-10 px-10 rounded-lg dark:bg-zinc-800">
                         <div className="w-full max-w-md space-y-8">
                             <div>
                                 <img

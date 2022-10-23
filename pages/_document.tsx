@@ -8,7 +8,7 @@ export default function Document() {
                 <script src="https://telegram.org/js/telegram-web-app.js" />
                 <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
             </Head>
-            <body className="scroll-smooth transition-all dark:bg-zinc-900 text-white bg-[url(/assets/images/bg.png)] bg-no-repeat bg-cover overflow-hidden h-screen">
+            <body className="scroll-smooth transition-all dark:bg-zinc-900 text-white overflow-hidden h-screen">
                 <Main />
                 <NextScript />
             </body>

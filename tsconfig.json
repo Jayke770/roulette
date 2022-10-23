@@ -22,9 +22,8 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    "pages/roulette/index.jsx"
-, "pages/api/auth/[...nextauth].js"  ],
+    "**/*.tsx"
+  ],
   "exclude": [
     "node_modules"
   ]
