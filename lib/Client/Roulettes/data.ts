@@ -14,9 +14,9 @@ interface Roulette {
         created: string
     }[],
 }
-export default function Roulettes(socket: Socket) {
-    const [data, setData] = useState<Roulette[]>()
-    const fetch = () => socket.emit('roulettes', (res: any) => setData(res))
+export default function RouletteData(socket: Socket, id: string) {
+    const [data, setData] = useState<Roulette>()
+    const fetch = () => socket.emit('roulette-data', (res: any) => setData(res))
     useEffect(() => {
         fetch()
         document.addEventListener('mousemove', fetch)
