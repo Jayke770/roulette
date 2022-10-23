@@ -104,7 +104,7 @@ export default function Auth() {
                 router.push('/control')
             }, 2000)
         }
-    }, [status])
+    }, [status, setData])
     return (
         <>
             <Head>
