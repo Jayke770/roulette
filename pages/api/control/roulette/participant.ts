@@ -32,7 +32,7 @@ export default async function RouletteSegment(req: ExtendedNextApiRequest, res: 
                 return res.status(404).send("Not Found")
             }
         } else {
-
+            return res.status(401).send("....")
         }
     } catch (e) {
         console.log(e)

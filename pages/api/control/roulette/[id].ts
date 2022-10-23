@@ -16,7 +16,7 @@ export default async function Roulettes(req: ExtendedNextApiRequest, res: NextAp
             const ROULETTES = id === 'all' ? await Roulette.find() : await Roulette.findOne({ id: id })
             return res.send(ROULETTES)
         } else {
-            return res.status(403).send("...")
+            return res.status(401).send("...")
         }
     } catch (e) {
         console.log(e)

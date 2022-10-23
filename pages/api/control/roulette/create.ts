@@ -40,7 +40,7 @@ export default async function CreateRoulette(req: ExtendedNextApiRequest, res: N
                 throw new Error(e)
             })
         } else {
-            return res.status(403).send("....")
+            return res.status(401).send("....")
         }
     } catch (e) {
         console.log(e)
