@@ -17,7 +17,7 @@ const navs = ['Dashboard', 'Users', 'Roulettes', 'System']
 export default function ControlNavbar({ page }) {
     return (
         <>
-            <Disclosure as="nav" className="bg-zinc-900 translucent sticky top-0">
+            <Disclosure as="nav" className="bg-zinc-900">
                 {({ open }) => (
                     <>
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -140,7 +140,7 @@ export default function ControlNavbar({ page }) {
                     </>
                 )}
             </Disclosure>
-            <header className="bg-white dark:bg-zinc-800 shadow">
+            <header className="bg-white dark:bg-zinc-800 shadow translucent sticky top-0 z-10">
                 <div className="mx-auto max-w-7xl py-6 px-4 sm:px-6 lg:px-8">
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-zinc-200">{page}</h1>
                 </div>

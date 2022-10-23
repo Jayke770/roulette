@@ -13,7 +13,7 @@ function classNames(...classes: any[]) {
 }
 export default function Navbar() {
     return (
-        <Disclosure as="nav" className="translucent bg-zinc-900">
+        <Disclosure as="nav" className="translucent sticky top-0 bg-zinc-900">
             {({ open }) => (
                 <>
                     <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">

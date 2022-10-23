@@ -5,16 +5,16 @@ import moment from 'moment'
 interface ExtendedNextApiRequest extends NextApiRequest {
     body: {
         id: string,
-        participants: {
+        participant: {
             id: string,
             userid: string,
             username: string,
             created: string
-        }[]
+        }
     }
 }
 export default async function RouletteSegment(req: ExtendedNextApiRequest, res: NextApiResponse) {
-    const { method, headers, body: { id, participants } } = req
+    const { method, headers, body: { id, participant } } = req
     try {
         if (method === 'POST' && headers['api-key'] === process.env.SECRET) {
             await dbConnect()
@@ -22,7 +22,7 @@ export default async function RouletteSegment(req: ExtendedNextApiRequest, res: 
             const data: any = await Roulette.findOne({ id: { $eq: id } }, { id: 1 })
             if (data) {
                 //update roulette 
-                await Roulette.updateOne({ id: { $eq: id } }, { $push: { participants: participants } })
+                await Roulette.updateOne({ id: { $eq: id } }, { $push: { participants: participant } })
                 return res.send({
                     status: true,
                     title: 'Roulette Participants Successfully Updated',
