@@ -1,6 +1,8 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import CountUp from 'react-countup'
+import { getSession } from 'next-auth/react'
+import {GetServerSideProps} from 'next'
 import { ControlMain, ControlNavbar } from '../../components'
 const user = {
     name: 'Tom Cook',
@@ -62,4 +64,19 @@ export default function Control() {
             </div>
         </div>
     )
+}
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+    const USERLOGGED = await getSession(ctx)
+    if (USERLOGGED) {
+        return {
+            props: {}
+        }
+    } else {
+        return {
+            props: {},
+            redirect: {
+                destination: '/api/auth/signin?callbackUrl=%2Fcontrol'
+            }
+        }
+    }
 }

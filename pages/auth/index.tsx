@@ -110,7 +110,7 @@ export default function Auth() {
             <Head>
                 <title>TEAMDAO Authentication</title>
             </Head>
-            <div className='flex justify-center items-center h-screen w-screen p-5 md:p-14 transition-all'>
+            <div className='flex justify-center items-center h-screen w-screen overflow-hidden p-5 md:p-14 transition-all'>
                 {status !== 'loading' && (
                     <div className="animate__animated animate__fadeInUp ms-200 translucent flex w-full md:w-[400px] items-center justify-center py-10 px-10 rounded-lg dark:bg-zinc-800">
                         <div className="w-full max-w-md space-y-8">
@@ -168,7 +168,7 @@ export default function Auth() {
                     </div>
                 )}
                 {status === 'loading' && (
-                    <div className='animate__animated animate__fadeInDown ms-200 md:w-[400px] w-full dark:bg-zinc-900 flex flex-col justify-center items-center p-5 rounded-lg shadow-lg'>
+                    <div className='animate__animated animate__fadeInDown ms-200 md:w-[400px] w-full dark:bg-zinc-800 flex flex-col justify-center items-center p-5 rounded-lg shadow-lg'>
                         <RiLoader5Fill className='w-10 h-10 text-teal-600 animate-spin' />
                     </div>
                 )}

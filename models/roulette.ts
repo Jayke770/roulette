@@ -4,9 +4,11 @@ interface RouletteTypes {
     autoStart: boolean,
     name: string,
     prize: string,
+    startRoulette: boolean,
     StartDate: string,
     maxParticipants: number,
     isDone: boolean,
+    winner: number,
     participants: {
         id: string,
         userid: string,
@@ -27,10 +29,16 @@ const roulette = new mongoose.Schema<RouletteTypes>({
     prize: {
         type: String
     },
+    startRoulette: {
+        type: Boolean
+    },
     StartDate: {
         type: String
     },
     maxParticipants: {
+        type: Number
+    },
+    winner: {
         type: Number
     },
     participants: [{

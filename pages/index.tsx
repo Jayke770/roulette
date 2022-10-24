@@ -1,12 +1,27 @@
 import Head from 'next/head'
 import { ClientMain, ClientNavbar, ClientRouletteCard } from '../components'
-import { ClientRoulettes, Websocket } from '../lib'
+import { ClientRoulettes, Config, Websocket } from '../lib'
 import { useContext } from 'react'
 import Link from 'next/link'
 import moment from 'moment'
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
 export default function Home() {
+    const router = useRouter()
     const socket = useContext(Websocket)
     const { roulettes } = ClientRoulettes(socket)
+    useEffect(() => {
+        if (Config.tgUser()) {
+            //ping send userid to server 
+            socket.emit('ping', { id: Config.str(Config.tgUser().id) })
+            //clean up
+            return () => {
+                socket.off('ping')
+            }
+        } else {
+            router.push("404")
+        }
+    }, [])
     return (
         <>
             <Head>

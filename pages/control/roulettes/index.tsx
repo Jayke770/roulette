@@ -4,7 +4,8 @@ import { FaPlus } from 'react-icons/fa'
 import Link from "next/link"
 import { useState } from 'react'
 import { ControlRoulettes } from "../../../lib"
-
+import { GetServerSideProps } from 'next'
+import { getSession } from 'next-auth/react'
 export default function Roulettes() {
     const [createModal, setCreateModal] = useState(false)
     const { roulettes } = ControlRoulettes()
@@ -61,4 +62,19 @@ export default function Roulettes() {
                 closeModal={() => setCreateModal(false)} />
         </>
     )
+}
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+    const USERLOGGED = await getSession(ctx)
+    if (USERLOGGED) {
+        return {
+            props: {}
+        }
+    } else {
+        return {
+            props: {},
+            redirect: {
+                destination: '/api/auth/signin?callbackUrl=%2Fcontrol'
+            }
+        }
+    }
 }

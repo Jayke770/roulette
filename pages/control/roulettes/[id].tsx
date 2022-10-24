@@ -1,12 +1,12 @@
 import { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/react'
 import Head from 'next/head'
-import { ControlMain, ControlNavbar, ManLoader, ControlRouletteParticipant } from '../../../components'
+import { ControlMain, ControlNavbar, ManLoader, ControlRouletteParticipant, ControlRouletteCreateNewPaticipant } from '../../../components'
 import dbConnect from '../../../lib/Db/connect'
 import { Roulette } from '../../../models'
 import { useState, useContext, useEffect } from 'react'
 import { ControlWs } from '../../../lib'
-import { FaPlus } from 'react-icons/fa'
+import { FaPlus, FaCog } from 'react-icons/fa'
 interface RouletteTypes {
     id: string,
     autoStart: boolean,
@@ -29,12 +29,13 @@ const card = Array.from({ length: 40 })
 export default function RouletteID(props: RouletteData) {
     const socket = useContext(ControlWs)
     const [roulette, SetRoulette] = useState<RouletteTypes>(JSON.parse(props.data))
+    const [createParticipant, SetCreateParticipant] = useState(false)
     useEffect(() => {
         //join to roulette room
-        socket.emit('roulette-join', { id: roulette.id })
+        socket.emit('join-roulette-room', { id: roulette.id })
         //clean up 
         return () => {
-
+            socket.off('join-roulette-room')
         }
     }, [])
     return (
@@ -53,12 +54,20 @@ export default function RouletteID(props: RouletteData) {
                                 placeholder="Search"
                                 className="bg-zinc-800 rounded-lg border-none transition-all outline-none dark:focus:ring-teamdao-primary font-normal" />
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex gap-2 items-center">
                             <button
+                                onClick={() => SetCreateParticipant(true)}
                                 className="bg-teamdao-primary/80 transition-all hover:bg-teamdao-primary px-4 py-2 dark:text-black rounded-lg shadow-lg font-semibold text-base">
                                 <div className="flex gap-2 items-center py-1 md:py-0">
                                     <FaPlus className="w-4 h-4" />
-                                    <span className="hidden md:block transition-all">New Segment</span>
+                                    <span className="hidden md:block transition-all">New Participant</span>
+                                </div>
+                            </button>
+                            <button
+                                className="bg-teamdao-primary/80 transition-all hover:bg-teamdao-primary px-4 py-2 dark:text-black rounded-lg shadow-lg font-semibold text-base">
+                                <div className="flex gap-2 items-center py-1 md:py-0">
+                                    <FaCog className="w-4 h-4" />
+                                    <span className="hidden md:block transition-all">Settings</span>
                                 </div>
                             </button>
                         </div>
@@ -74,6 +83,10 @@ export default function RouletteID(props: RouletteData) {
                     </div>
                 </div>
             </ControlMain>
+            <ControlRouletteCreateNewPaticipant
+                rouletteID={roulette.id}
+                open={createParticipant}
+                closeModal={() => SetCreateParticipant(false)} />
         </>
     )
 }
@@ -100,7 +113,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         return {
             props: {},
             redirect: {
-                destination: '/auth'
+                destination: '/api/auth/signin?callbackUrl=%2Fcontrol'
             }
         }
     }
