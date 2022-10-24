@@ -1,11 +1,16 @@
 import { Bot } from 'grammy'
+import { run } from '@grammyjs/runner'
+import { apiThrottler } from '@grammyjs/transformer-throttler'
 import moment from 'moment'
 import { Config } from '../lib'
 import dbConnect from '../lib/Db/connect'
 import { User } from '../models'
 const bot = new Bot(process.env.BOT_TOKEN)
+const throttler = apiThrottler()
+bot.api.config.use(throttler)
 bot.command("start", async (ctx) => {
     try {
+        await ctx.reply("Checking Please wait...")
         await dbConnect()
         const USERDATA = await User.findOne({ 'info.id': { $eq: Config.str(ctx.from.id) } })
         //profile pohoto path
@@ -54,4 +59,5 @@ bot.command("start", async (ctx) => {
         console.log(e)
     }
 })
-export default bot
+const x = { run, bot }
+export default x

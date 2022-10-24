@@ -6,20 +6,22 @@ import Link from 'next/link'
 import moment from 'moment'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+const hard = "1391502332"
 export default function Home() {
     const router = useRouter()
     const socket = useContext(Websocket)
     const { roulettes } = ClientRoulettes(socket)
+    // useEffect(() => {
+    //     if (!Config.tgUser()) {
+    //         router.push("404")
+    //     }
+    // })
     useEffect(() => {
-        if (Config.tgUser()) {
-            //ping send userid to server 
-            socket.emit('ping', { id: Config.str(Config.tgUser().id) })
-            //clean up
-            return () => {
-                socket.off('ping')
-            }
-        } else {
-            router.push("404")
+        //ping send userid to server 
+        socket.emit('ping', { id: hard })
+        //clean up
+        return () => {
+            socket.off('ping')
         }
     }, [])
     return (

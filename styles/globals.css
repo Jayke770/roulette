@@ -7,6 +7,11 @@
       backdrop-filter: saturate(180%) blur(20px);
     }
 }
+/* Sweetalert */
+.swal2-popup,
+.swal2-popup.swal2-toast {
+    @apply dark:bg-zinc-800 dark:text-zinc-300;
+}
 ::-webkit-scrollbar {
     @apply w-1 h-1;
 }

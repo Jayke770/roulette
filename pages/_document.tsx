@@ -5,6 +5,9 @@ export default function Document() {
             <Head>
                 <meta charSet="utf-8" />
                 <meta name="theme-color" content="#202020" />
+                <meta name="title" content="TEAMDAO Raffles" />
+                <link rel="shortcut icon" href="/logo.png" type="image/x-png" />
+                <link rel="apple-touch-icon" href="/logo.png" />
                 <script src="https://telegram.org/js/telegram-web-app.js" />
                 <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
             </Head>

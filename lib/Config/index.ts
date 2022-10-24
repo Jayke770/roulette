@@ -11,7 +11,7 @@ const config = {
     str: (str: any) => str.toString(),
     tgUser: () => {
         type tgUSER = {
-            id: number | string,
+            id: "1391502332",
             first_name: string,
             lastname: string,
             username: string,

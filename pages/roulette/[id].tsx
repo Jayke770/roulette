@@ -9,8 +9,9 @@ import { Roulette } from '../../models'
 import { useRouter } from 'next/router'
 const Wheel = dynamic(
   () => import('react-custom-roulette').then(mod => mod.Wheel),
-  { ssr: false }
+  { ssr: false, loading: () => <span>Loading</span> }
 )
+const hard = "1391502332"
 interface RouletteDataTypes {
   data: {
     id: string,
@@ -49,26 +50,32 @@ export default function RouletteData(props: RouletteData) {
     data: JSON.parse(props.data),
     roulette: JSON.parse(props.roulette)
   })
+  // useEffect(() => {
+  //     if (!Config.tgUser()) {
+  //         router.push("404")
+  //     }
+  // })
   useEffect(() => {
-    if (Config.tgUser()) {
-      //ping send userid to server 
-      socket.emit('ping', { id: Config.str(Config.tgUser().id) })
-      //join roulette room 
-      socket.emit('join-roulette-room', { id: WheelData.data.id, userid: (Config.tgUser()).id })
-      //new roulette participant 
-      socket.on('new-roulette-participant', (new_data: RouletteDataTypes) => {
-        setWheelData({ ...WheelData, data: new_data.data, roulette: new_data.roulette })
-      })
-      //clean up
-      return () => {
-        socket.off('ping')
-        socket.off('join-roulette-room')
-        socket.off('new-roulette-participant')
-      }
-    } else {
-      router.push("404")
+    //ping send userid to server 
+    socket.emit('ping', { id: hard })
+    //join roulette room 
+    socket.emit('join-roulette-room', { id: WheelData.data.id, userid: hard })
+    //new roulette participant 
+    socket.on('new-roulette-participant', (new_data: RouletteDataTypes) => {
+      setWheelData({ ...WheelData, data: new_data.data, roulette: new_data.roulette })
+    })
+    //new roulette data
+    socket.on('roulette-data', (new_data: RouletteDataTypes) => {
+      setWheelData({ ...WheelData, data: new_data.data, roulette: new_data.roulette })
+    })
+    //clean up
+    return () => {
+      socket.off('ping')
+      socket.off('join-roulette-room')
+      socket.off('new-roulette-participant')
     }
   }, [])
+  console.log(WheelData)
   return (
     <>
       <Head>4
