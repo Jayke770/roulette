@@ -4,6 +4,7 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
 import { instrument } from '@socket.io/admin-ui'
+import mongoose from 'mongoose'
 const port = parseInt(process.env.PORT, 10) || 3000
 const dev = process.env.NODE_ENV !== 'production'
 const ORIGIN = [process.env.HOST, "https://admin.socket.io"]
@@ -15,6 +16,9 @@ const server = express()
 server.use(cors({
     origin: ORIGIN
 }))
+mongoose.connect(process.env.MONGODB_URI, {
+    bufferCommands: false
+})
 const httpServer = createServer(server)
 const io = new Server(httpServer, {
     cors: {
