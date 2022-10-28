@@ -7,6 +7,18 @@
       backdrop-filter: saturate(180%) blur(20px);
     }
 }
+.animate-blink {
+    animation: blink 2s linear infinite;
+    @apply bg-zinc-700;
+}
+@keyframes blink {
+    from {
+        @apply bg-zinc-800;
+    }
+    to {
+        @apply bg-zinc-700;
+    }
+}
 /* Sweetalert */
 .swal2-popup,
 .swal2-popup.swal2-toast {

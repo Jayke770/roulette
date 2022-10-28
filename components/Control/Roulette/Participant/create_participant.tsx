@@ -4,7 +4,13 @@ import { RiLoader5Fill } from "react-icons/ri"
 import { Dialog as _Dialog } from '../../../'
 import { useContext } from 'react'
 import { ControlWs } from '../../../../lib'
-export default function NewParticipant({ open, closeModal, rouletteID }) {
+interface props {
+    open: boolean,
+    closeModal: () => void,
+    rouletteID: string,
+    _get_roulette_data: () => void
+}
+export default function NewParticipant({ open, closeModal, rouletteID, _get_roulette_data }: props) {
     const socket = useContext(ControlWs)
     const [participant, setParticipant] = useState({
         userid: '',
@@ -34,6 +40,7 @@ export default function NewParticipant({ open, closeModal, rouletteID }) {
                         setParticipant({ ...participant, isLoading: false, userid: status ? '' : participant.userid })
                         //participant successfully added 
                         if (status) {
+                            _get_roulette_data()
                             socket.emit("new-roulette-participant", { id: rouletteID })
                         }
                     } else {
