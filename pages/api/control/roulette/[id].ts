@@ -13,7 +13,7 @@ export default async function Roulettes(req: ExtendedNextApiRequest, res: NextAp
     try {
         if (method === 'GET' && USERLOGGED) {
             await dbConnect()
-            const ROULETTES = id === 'all' ? await Roulette.find() : await Roulette.findOne({ id: id })
+            const ROULETTES = id === 'all' ? await Roulette.find().sort({ _id: -1 }) : await Roulette.findOne({ id: id })
             return res.send(ROULETTES)
         } else {
             return res.status(401).send("...")

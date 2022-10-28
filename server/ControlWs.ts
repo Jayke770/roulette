@@ -1,6 +1,6 @@
 import { Color } from '../lib'
 import dbConnect from '../lib/Db/connect'
-import { Roulette } from '../models'
+import { Roulette, User } from '../models'
 import App from './settings'
 type RouletteTypes = {
     id: string,
@@ -20,6 +20,16 @@ type RouletteTypes = {
     created: string
 }
 App.ControlWs.on('connection', async (socket) => {
+    //get user info 
+    socket.on('user-info', async ({ id }, cb) => {
+        try {
+            await dbConnect()
+            const userData = await User.findOne({ 'info.id': { $eq: id } }, { info: 1, socketID: 1 })
+            cb(userData)
+        } catch (e) {
+            cb(null)
+        }
+    })
     //join in roulette room 
     socket.on('join-roulette-room', ({ id }) => {
         console.log('rou', id)
@@ -55,17 +65,29 @@ App.ControlWs.on('connection', async (socket) => {
             })
             //emit to roulette room 
             App.ClientWs.to(id).emit('roulette-data', { data: roulette_data, roulette: new_participants_data })
-            //wait for 10secs then update the roulette to done
-            setTimeout(async () => {
-                await Roulette.updateOne({ id: { $eq: id } }, { $set: { isDone: true } })
-                //send to admin 
-                roulette_data = await Roulette.findOne({ id: { $eq: id } })
-                socket.emit('roulette-data', { data: roulette_data })
-                cb({ status: true, title: 'Roulette Started', message: '' })
-            }, 10000)
+            //emit to admin
+            await Roulette.updateOne({ id: { $eq: id } }, { $set: { isDone: true } })
+            //send to admin 
+            roulette_data = await Roulette.findOne({ id: { $eq: id } })
+            socket.emit('roulette-data', { data: roulette_data, roulette: new_participants_data })
+            cb({ status: true, title: 'Roulette Started', message: '' })
         } catch (e) {
             console.log(e)
             cb({ status: false, title: 'Server Error', message: e.message })
+        }
+    })
+    //get roulette data 
+    socket.on('roulette-data', async ({ id }, cb) => {
+        try {
+            await dbConnect()
+            let roulette_data: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
+            let new_participants_data: any[] = []
+            roulette_data.participants.map((x) => {
+                new_participants_data.push({ option: x.userid, id: x.id, style: { backgroundColor: Color.dark(), textColor: Color.light() } })
+            })
+            cb({ data: roulette_data, roulette: roulette_data })
+        } catch (e) {
+            cb({ status: false, title: "Connection Error", message: e.message })
         }
     })
 })

@@ -11,3 +11,5 @@ export { default as ControlRouletteParticipant } from './Control/Roulette/Partic
 export { default as ControlRouletteCreateNewPaticipant } from './Control/Roulette/Participant/create_participant'
 export { default as ControlRouletteSettings } from './Control/Roulette/Settings'
 export { default as ClientRouletteCard } from './Client/Roulette/card'
+export { default as ControlRouletteChatRecieved } from './Control/Roulette/Chat/received'
+export { default as ControlRouletteChatSent } from './Control/Roulette/Chat/sent'
