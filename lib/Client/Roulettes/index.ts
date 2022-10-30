@@ -1,33 +1,36 @@
-import { Socket } from 'socket.io-client'
-import { useState, useEffect } from 'react'
-interface Roulette {
-    id: string,
-    autoStart: boolean,
-    name: string,
-    prize: string,
-    StartDate: string,
-    maxParticipants: number,
-    isDone: boolean,
-    participants: {
+import useSWR from 'swr'
+const fetcher = (url: any) => fetch(url).then((res) => res.json())
+type Roulette = {
+    roulettes: {
         id: string,
-        userid: string,
-        created: string
+        autoStart: boolean,
+        name: string,
+        prize: string,
+        StartDate: string,
+        maxParticipants: number,
+        isDone: boolean,
+        participants: {
+            id: string,
+            userid: string,
+            created: string
+        }[],
     }[],
+    roulettesLoading: boolean,
+    roulettesError: boolean
 }
-export default function Roulettes(socket: Socket) {
-    const [data, setData] = useState<Roulette[]>()
-    const fetch = () => socket.emit('roulettes', (res: any) => setData(res))
-    useEffect(() => {
-        fetch()
-        document.addEventListener('mousemove', fetch)
-        document.addEventListener("touchstart", fetch)
-        document.addEventListener('focusin', fetch)
-        //clean up 
-        return () => {
-            document.removeEventListener('mousemove', fetch, false)
-            document.removeEventListener('touchstart', fetch, false)
-            document.removeEventListener('focusin', fetch, false)
-        }
-    }, [])
-    return { roulettes: data }
+export default function Roulettes(id: any) {
+    const { data, error } = useSWR(`/api/roulette/${id}`, fetcher, {
+        shouldRetryOnError: true,
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        refreshWhenHidden: true,
+        refreshWhenOffline: true,
+        refreshInterval: 20000
+    })
+    const x: Roulette = {
+        roulettes: data,
+        roulettesLoading: !error && !data,
+        roulettesError: error
+    }
+    return x
 }

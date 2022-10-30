@@ -1,21 +1,47 @@
 import Head from 'next/head'
 import { ClientMain, ClientNavbar, ClientRouletteCard } from '../components'
 import { ClientRoulettes, Config, Websocket } from '../lib'
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import Link from 'next/link'
 import moment from 'moment'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 const hard = "1391502332"
+interface RouletteData {
+    id: string,
+    autoStart: boolean,
+    name: string,
+    prize: string,
+    StartDate: string,
+    maxParticipants: number,
+    isDone: boolean,
+    participants: {
+        id: string,
+        userid: string,
+        created: string
+    }[],
+}
 export default function Home() {
     const router = useRouter()
     const socket = useContext(Websocket)
-    const { roulettes } = ClientRoulettes(socket)
+    const { roulettes } = ClientRoulettes('all')
+    const [roulettesData, setRouletteData] = useState<RouletteData[]>()
     // useEffect(() => {
     //     if (!Config.tgUser()) {
     //         router.push("404")
     //     }
     // })
+    //get roulettes
+    const fetch = () => typeof window && socket.emit('roulettes', (res: RouletteData[]) => setRouletteData(res))
+    //mouse and touch listener
+    useEffect(() => {
+        document.addEventListener('mousemove', fetch)
+        document.addEventListener("touchstart", fetch)
+        document.addEventListener('focusin', fetch)
+    }, [])
+    useEffect(() => {
+        if (roulettes) setRouletteData(roulettes)
+    }, [roulettes, setRouletteData])
     useEffect(() => {
         //ping send userid to server 
         socket.emit('ping', { id: hard })
@@ -32,9 +58,9 @@ export default function Home() {
             <ClientNavbar />
             <ClientMain>
                 <div className='flex flex-col md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 p-2'>
-                    {roulettes ? (
-                        roulettes.length > 0 ? (
-                            roulettes.map((x, i) => (
+                    {roulettesData ? (
+                        roulettesData.length > 0 ? (
+                            roulettesData.map((x, i) => (
                                 <Link key={i} href={`/roulette/${x.id}`} passHref>
                                     <a>
                                         <ClientRouletteCard
@@ -45,8 +71,8 @@ export default function Home() {
                                     </a>
                                 </Link>
                             ))
-                        ) : <span>empty</span>
-                    ) : <span>Loading</span>}
+                        ) : null
+                    ) : null}
                 </div>
             </ClientMain>
         </>

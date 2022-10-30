@@ -9,7 +9,7 @@ type RouletteCard = {
 export default function RouletteCard(props: RouletteCard) {
     const renderer = ({ days, hours, minutes, seconds, completed }) => {
         if (completed) {
-
+            return <span>Raffle Ended</span>
         } else {
             return <span className='text-base text-center dark:text-primary font-bold uppercase'>{days}D {hours}:{minutes}:{seconds}</span>
         }

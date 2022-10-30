@@ -17,7 +17,7 @@ App.ClientWs.on('connection', async (socket) => {
     })
     //get roulettes 
     socket.on('roulettes', async (cb) => {
-        const data = await Roulette.find()
+        const data = await Roulette.find().sort({ _id: -1 })
         cb(data)
     })
 })
