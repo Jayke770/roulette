@@ -4,14 +4,12 @@ import { apiThrottler } from '@grammyjs/transformer-throttler'
 import moment from 'moment'
 import { Config } from '../lib'
 import { User } from '../models'
-import dbConnect from '../lib/DB/connect'
 const bot = new Bot(process.env.BOT_TOKEN)
 const throttler = apiThrottler()
 bot.api.config.use(throttler)
 bot.command("start", async (ctx) => {
     try {
         await ctx.reply("Checking Please wait...")
-        await dbConnect()
         const USERDATA = await User.findOne({ 'info.id': { $eq: Config.str(ctx.from.id) } })
         //profile pohoto path
         const USERPROFILE = (await bot.api.getFile((await bot.api.getUserProfilePhotos(ctx.from.id)).photos[0][0].file_id)).file_path
