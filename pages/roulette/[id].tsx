@@ -153,18 +153,21 @@ export default function RouletteData(props: RouletteData) {
               <span className='text-lg font-normal'>Roulette Chats</span>
             </div>
             <div className='flex p-2 w-full flex-col gap-2 overflow-auto h-[calc(100vh-138px)]'>
-              {Array.from({ length: 5 }).map(() => (
+              {Array.from({ length: 5 }).map((x, i) => (
                 <ClientRouletteChatSent
+                  key={i}
                   username='@hfjashfa'
                   message='faksjfhf 2148dasfh' />
               ))}
-              {Array.from({ length: 5 }).map(() => (
+              {Array.from({ length: 5 }).map((x, i) => (
                 <ClientRouletteChatRecieved
+                  key={i}
                   username='@hfjashfa'
                   message='faksjfhf 2148dasfh' />
               ))}
-              {Array.from({ length: 5 }).map(() => (
+              {Array.from({ length: 5 }).map((x, i) => (
                 <ClientRouletteChatSent
+                  key={i}
                   username='@hfjashfa'
                   message='faksjfhf 2148dasfh' />
               ))}
