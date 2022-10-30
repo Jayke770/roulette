@@ -1,5 +1,6 @@
 {
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build:server": "tsc --project tsconfig.server.json",
     "dev": "ts-node --project tsconfig.server.json server/app.ts",
@@ -9,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@grammyjs/runner": "^1.0.4",
     "@grammyjs/transformer-throttler": "^1.1.2",
     "@headlessui/react": "^1.7.3",

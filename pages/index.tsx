@@ -1,12 +1,11 @@
 import Head from 'next/head'
 import { ClientMain, ClientNavbar, ClientRouletteCard } from '../components'
-import { ClientRoulettes, Config, Websocket } from '../lib'
+import { AccountData, ClientRoulettes, Config, Websocket } from '../lib'
 import { useContext, useState } from 'react'
 import Link from 'next/link'
 import moment from 'moment'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-const hard = "1391502332"
 interface RouletteData {
     id: string,
     autoStart: boolean,
@@ -26,6 +25,7 @@ export default function Home() {
     const socket = useContext(Websocket)
     const { roulettes } = ClientRoulettes('all')
     const [roulettesData, setRouletteData] = useState<RouletteData[]>()
+    const { account } = AccountData(process.env.NODE_ENV !== 'development' ? Config.tgUser()?.id : process.env.NEXT_PUBLIC_HARD)
     useEffect(() => {
         if (!Config.tgUser() && process.env.NODE_ENV !== 'development') {
             router.push("404")
@@ -55,27 +55,31 @@ export default function Home() {
             <Head>
                 <title>TEAMDAO Spinning Wheel</title>
             </Head>
-            <ClientNavbar
-                userid={process.env.NODE_ENV !== 'development' ? Config.tgUser()?.id : process.env.NEXT_PUBLIC_HARD} />
-            <ClientMain>
-                <div className='flex flex-col md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 p-2'>
-                    {roulettesData ? (
-                        roulettesData.length > 0 ? (
-                            roulettesData.map((x, i) => (
-                                <Link key={i} href={`/roulette/${x.id}`} passHref>
-                                    <a>
-                                        <ClientRouletteCard
-                                            date={parseInt(moment(x.StartDate).format('x'))}
-                                            title={x.name}
-                                            maxParticipants={x.maxParticipants}
-                                            participants={x.participants.length} />
-                                    </a>
-                                </Link>
-                            ))
-                        ) : null
-                    ) : null}
-                </div>
-            </ClientMain>
+            {account ? (
+                <>
+                    <ClientNavbar
+                        userid={account?.info?.id} />
+                    <ClientMain>
+                        <div className='flex flex-col md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 p-2'>
+                            {roulettesData ? (
+                                roulettesData.length > 0 ? (
+                                    roulettesData.map((x, i) => (
+                                        <Link key={i} href={`/roulette/${x.id}`} passHref>
+                                            <a>
+                                                <ClientRouletteCard
+                                                    date={parseInt(moment(x.StartDate).format('x'))}
+                                                    title={x.name}
+                                                    maxParticipants={x.maxParticipants}
+                                                    participants={x.participants.length} />
+                                            </a>
+                                        </Link>
+                                    ))
+                                ) : null
+                            ) : null}
+                        </div>
+                    </ClientMain>
+                </>
+            ) : null}
         </>
     )
 }

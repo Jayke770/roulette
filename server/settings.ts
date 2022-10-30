@@ -16,9 +16,7 @@ const server = express()
 server.use(cors({
     origin: ORIGIN
 }))
-mongoose.connect(process.env.MONGODB_URI, {
-    bufferCommands: false
-})
+mongoose.connect(process.env.MONGODB_URI, { bufferCommands: false })
 const httpServer = createServer(server)
 const io = new Server(httpServer, {
     cors: {
