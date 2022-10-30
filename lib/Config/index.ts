@@ -11,10 +11,10 @@ const config = {
     str: (str: any) => str.toString(),
     tgUser: () => {
         type tgUSER = {
-            id: "1391502332",
-            first_name: string,
-            lastname: string,
-            username: string,
+            id?: string,
+            first_name?: string,
+            lastname?: string,
+            username?: string,
             language_code?: string
         }
         const MyWindow: CustomWindow = typeof window !== 'undefined' ? window : undefined

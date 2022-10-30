@@ -44,7 +44,7 @@ export default function Home() {
     }, [roulettes, setRouletteData])
     useEffect(() => {
         //ping send userid to server 
-        socket.emit('ping', { id: process.env.NODE_ENV !== 'development' ? Config.tgUser().id : process.env.NEXT_PUBLIC_HARD })
+        socket.emit('ping', { id: process.env.NODE_ENV !== 'development' ? Config.tgUser()?.id : process.env.NEXT_PUBLIC_HARD })
         //clean up
         return () => {
             socket.off('ping')
@@ -56,7 +56,7 @@ export default function Home() {
                 <title>TEAMDAO Spinning Wheel</title>
             </Head>
             <ClientNavbar
-                userid={process.env.NODE_ENV !== 'development' ? Config.tgUser().id : process.env.NEXT_PUBLIC_HARD} />
+                userid={process.env.NODE_ENV !== 'development' ? Config.tgUser()?.id : process.env.NEXT_PUBLIC_HARD} />
             <ClientMain>
                 <div className='flex flex-col md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 p-2'>
                     {roulettesData ? (
