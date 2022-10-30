@@ -85,6 +85,7 @@ export default function RouletteData(props: RouletteData) {
     animate_in.map(x => div.classList.add(x))
     document.querySelector('#main-wrapper-msg').classList.remove('hidden')
     document.querySelector('#main-wrapper-msg').classList.add('flex')
+    document.querySelector('#chats').scrollTop = document.querySelector('#chats').scrollHeight
   }
   const chat_close = () => {
     const div = document.querySelector("#main-msg")
@@ -105,7 +106,7 @@ export default function RouletteData(props: RouletteData) {
         <title>{WheelData.data.name}</title>
       </Head>
       <Background />
-      <nav className='translucent sticky z-50 top-0 bg-zinc-900 flex items-center justify-between py-3 px-4 lg:px-10'>
+      <nav className='translucent sticky z-50 top-0 bg-zinc-900 flex items-center justify-between py-2 px-4 lg:px-10'>
         <div className='flex gap-4 items-center py-2'>
           <Link href={'/'} passHref>
             <a>
@@ -151,7 +152,7 @@ export default function RouletteData(props: RouletteData) {
                 className="cursor-pointer" />
               <span className='text-lg font-normal'>Roulette Chats</span>
             </div>
-            <div className='flex p-2 w-full flex-col gap-2 overflow-auto h-[calc(100vh-138px)]'>
+            <div id='chats' className='flex p-2 w-full flex-col gap-2 overflow-auto h-[calc(100vh-138px)]'>
               {Array.from({ length: 5 }).map((x, i) => (
                 <ClientRouletteChatSent
                   key={i}

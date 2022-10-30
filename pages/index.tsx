@@ -55,7 +55,8 @@ export default function Home() {
             <Head>
                 <title>TEAMDAO Spinning Wheel</title>
             </Head>
-            <ClientNavbar />
+            <ClientNavbar
+                userid={process.env.NODE_ENV !== 'development' ? Config.tgUser().id : process.env.NEXT_PUBLIC_HARD} />
             <ClientMain>
                 <div className='flex flex-col md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 p-2'>
                     {roulettesData ? (
