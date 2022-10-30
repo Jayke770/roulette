@@ -26,11 +26,11 @@ export default function Home() {
     const socket = useContext(Websocket)
     const { roulettes } = ClientRoulettes('all')
     const [roulettesData, setRouletteData] = useState<RouletteData[]>()
-    // useEffect(() => {
-    //     if (!Config.tgUser()) {
-    //         router.push("404")
-    //     }
-    // })
+    useEffect(() => {
+        if (!Config.tgUser() && process.env.NODE_ENV !== 'development') {
+            router.push("404")
+        }
+    })
     //get roulettes
     const fetch = () => typeof window && socket.emit('roulettes', (res: RouletteData[]) => setRouletteData(res))
     //mouse and touch listener
@@ -44,7 +44,7 @@ export default function Home() {
     }, [roulettes, setRouletteData])
     useEffect(() => {
         //ping send userid to server 
-        socket.emit('ping', { id: hard })
+        socket.emit('ping', { id: process.env.NODE_ENV !== 'development' ? Config.tgUser().id : process.env.NEXT_PUBLIC_HARD })
         //clean up
         return () => {
             socket.off('ping')
