@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic'
 import { Websocket, Color, ClientRouletteData, Config } from '../../lib'
 import Head from 'next/head'
 import { Background } from '../../components'
-import dbConnect from '../../lib/Db/connect'
 import { GetServerSideProps } from 'next'
 import { Roulette } from '../../models'
 import { useRouter } from 'next/router'
@@ -101,7 +100,6 @@ export default function RouletteData(props: RouletteData) {
   )
 }
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  await dbConnect()
   const ROULETTE_DATA = await Roulette.findOne({ id: ctx.query['id'] })
   if (ROULETTE_DATA) {
     //modify participants array 

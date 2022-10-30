@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getSession } from 'next-auth/react'
-import dbConnect from '../../../../lib/Db/connect'
 import { Roulette } from '../../../../models'
 interface ExtendedNextApiRequest extends NextApiRequest {
     query: {
@@ -12,7 +11,6 @@ export default async function Roulettes(req: ExtendedNextApiRequest, res: NextAp
     const USERLOGGED = await getSession({ req })
     try {
         if (method === 'GET' && USERLOGGED) {
-            await dbConnect()
             const ROULETTES = id === 'all' ? await Roulette.find().sort({ _id: -1 }) : await Roulette.findOne({ id: id })
             return res.send(ROULETTES)
         } else {

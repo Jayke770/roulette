@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next"
-import dbConnect from '../../../../lib/Db/connect'
 import { Roulette } from '../../../../models'
 import moment from 'moment'
 interface ExtendedNextApiRequest extends NextApiRequest {
@@ -17,7 +16,6 @@ export default async function RouletteSegment(req: ExtendedNextApiRequest, res: 
     const { method, headers, body: { id, participant } } = req
     try {
         if (method === 'POST' && headers['api-key'] === process.env.SECRET) {
-            await dbConnect()
             //check if roulette exists
             const data: any = await Roulette.findOne({ id: { $eq: id } }, { id: 1 })
             if (data) {

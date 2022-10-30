@@ -1,8 +1,7 @@
 import { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/react'
 import Head from 'next/head'
-import { ControlMain, ControlNavbar, ManLoader, ControlRouletteParticipant, ControlRouletteCreateNewPaticipant, ControlRouletteSettings, ControlRou, ControlRouletteChatRecieved, ControlRouletteChatSent } from '../../../components'
-import dbConnect from '../../../lib/Db/connect'
+import { ControlMain, ControlNavbar, ManLoader, ControlRouletteParticipant, ControlRouletteCreateNewPaticipant, ControlRouletteSettings, ControlRouletteChatRecieved, ControlRouletteChatSent } from '../../../components'
 import { Roulette } from '../../../models'
 import { useState, useContext, useEffect } from 'react'
 import { Color, ControlWs } from '../../../lib'
@@ -313,7 +312,6 @@ export default function RouletteID(props: RouletteDataProps) {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
     const USERLOGGED = await getSession(ctx)
     if (USERLOGGED) {
-        await dbConnect()
         const ROULETTE_DATA = await Roulette.findOne({ id: ctx.query['id'] })
         if (ROULETTE_DATA) {
             //modify participants array 

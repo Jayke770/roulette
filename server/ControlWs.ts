@@ -1,5 +1,4 @@
 import { Color } from '../lib'
-import dbConnect from '../lib/Db/connect'
 import { Roulette, User } from '../models'
 import App from './settings'
 type RouletteTypes = {
@@ -23,7 +22,6 @@ App.ControlWs.on('connection', async (socket) => {
     //get user info 
     socket.on('user-info', async ({ id }, cb) => {
         try {
-            await dbConnect()
             const userData = await User.findOne({ 'info.id': { $eq: id } }, { info: 1, socketID: 1 })
             cb(userData)
         } catch (e) {
@@ -39,7 +37,6 @@ App.ControlWs.on('connection', async (socket) => {
     //new roulette participant 
     socket.on("new-roulette-participant", async ({ id }) => {
         //notify all users in roulette room 
-        await dbConnect()
         const ROULETTE_DATA: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
         let new_participants_data: any[] = []
         ROULETTE_DATA.participants.map((x) => {
@@ -51,7 +48,6 @@ App.ControlWs.on('connection', async (socket) => {
     //start roulette 
     socket.on('start-roulette', async ({ id }, cb) => {
         try {
-            await dbConnect()
             let roulette_data: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
             //bake the winner 
             const WINNER = Math.floor(Math.random() * roulette_data.participants.length)
@@ -79,7 +75,6 @@ App.ControlWs.on('connection', async (socket) => {
     //get roulette data 
     socket.on('roulette-data', async ({ id }, cb) => {
         try {
-            await dbConnect()
             let roulette_data: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
             let new_participants_data: any[] = []
             roulette_data.participants.map((x) => {

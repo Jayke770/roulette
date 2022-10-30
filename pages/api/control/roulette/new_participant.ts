@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next"
-import dbConnect from '../../../../lib/Db/connect'
 import { Roulette, User } from '../../../../models'
 import moment from 'moment'
 import { getSession } from "next-auth/react"
@@ -32,7 +31,6 @@ export default async function NewParticipant(req: ExtendedNextApiRequest, res: N
     const USERLOGGED = await getSession({ req })
     try {
         if (method === 'POST' && USERLOGGED) {
-            await dbConnect()
             await Roulette.findOne({ id: { $eq: rouletteid } }).then(async (roulettedata: roulettedata) => {
                 if (roulettedata) {
                     if (roulettedata.isDone) {

@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next"
 import { getSession } from 'next-auth/react'
-import dbConnect from '../../../../lib/Db/connect'
 import { Roulette } from '../../../../models'
 import { Config } from '../../../../lib'
 import moment from 'moment'
@@ -16,7 +15,6 @@ export default async function CreateRoulette(req: ExtendedNextApiRequest, res: N
     const { method, body: { autoStart, raffleDate, raffleName, rafflePrize } } = req
     const USERLOGGED = await getSession({ req })
     try {
-        await dbConnect()
         if (method === 'POST' && USERLOGGED) {
             //save new roulette 
             const new_roulette = new Roulette({
