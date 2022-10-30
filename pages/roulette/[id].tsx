@@ -235,7 +235,7 @@ export default function RouletteData(props: RouletteData) {
               />
               <div className='flex flex-col gap-3 mt-3'>
                 {/* Check if the user is already joined the roulette */}
-                {!WheelData.data.participants.find(x => x.userid === account.info.id) ? (
+                {!WheelData.data.participants.find(x => x.userid === account.info.id) && !WheelData.data.isDone ? (
                   <button
                     onClick={join_roulette}
                     className='dark:bg-teamdao-primary/80 dark:hover:bg-teamdao-primary px-5 py-3 shadow-lg rounded-lg dark:text-black font-bold'>Join Roulette</button>
