@@ -1,6 +1,5 @@
 import App from './settings'
 import { Roulette, User } from '../models'
-import { Color } from '../lib'
 import sanitizeHtml from 'sanitize-html'
 App.ClientWs.on('connection', async (socket) => {
     //client disconnect 
@@ -25,15 +24,7 @@ App.ClientWs.on('connection', async (socket) => {
     //get roulette data 
     socket.on('roulette-data', async ({ id }, cb) => {
         const ROULETTE_DATA = await Roulette.findOne({ id: { $eq: id } })
-        //modify participants array 
-        let new_participants_data: any[] = []
-        ROULETTE_DATA.participants.map((x) => {
-            new_participants_data.push({ option: x.userid, id: x.id, style: { backgroundColor: Color.dark(), textColor: Color.light() } })
-        })
-        cb({
-            roulette: new_participants_data,
-            data: ROULETTE_DATA
-        })
+        cb(ROULETTE_DATA)
     })
     //send message 
     socket.on('send-message', async ({ rouletteID, userid, message }, cb) => {

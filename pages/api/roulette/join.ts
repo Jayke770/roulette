@@ -1,6 +1,6 @@
 import moment from "moment"
 import { NextApiResponse, NextApiRequest } from "next"
-import { Config } from "../../../lib"
+import { Config, Color } from "../../../lib"
 import { Roulette, User } from "../../../models"
 interface x extends NextApiRequest {
     body: {
@@ -40,6 +40,10 @@ export default async function JoinRoulette(req: x, res: NextApiResponse) {
                             const NEW_PARTICIPANT = {
                                 id: Config.id(12),
                                 userid: userid,
+                                option: userid,
+                                style: {
+                                    backgroundColor: Color.dark()
+                                },
                                 created: moment().format()
                             }
                             await Roulette.updateOne({ id: { $eq: rouletteID } }, { $push: { participants: NEW_PARTICIPANT } })
