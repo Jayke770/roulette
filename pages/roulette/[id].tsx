@@ -15,51 +15,38 @@ const Wheel = dynamic(
   { ssr: false, loading: () => <span>Loading</span> }
 )
 interface RouletteDataTypes {
-  data: {
+  id: string,
+  autoStart: boolean,
+  name: string,
+  prize: string,
+  StartDate: string,
+  maxParticipants: number,
+  isDone: boolean,
+  startRoulette: boolean,
+  winner: number,
+  participants: {
     id: string,
-    autoStart: boolean,
-    name: string,
-    prize: string,
-    StartDate: string,
-    maxParticipants: number,
-    isDone: boolean,
-    startRoulette: boolean,
-    winner: number,
-    participants: {
-      id: string,
-      userid: string,
-      created: string
-    }[],
-    created: string
-  },
-  roulette: {
+    userid: string,
     option: string,
-    id: string,
+    created: string,
     style: {
-      backgroundColor: string,
-      textColor: string
+      backgroundColor: string
     }
-  }[]
-}
-type RouletteData = {
-  data: any,
-  roulette: any
+  }[],
+  created: string
 }
 interface Message {
   isSending: boolean,
   message: string
 }
-export default function RouletteData(props: RouletteData) {
+export default function RouletteData(props: { data: any }) {
   const router = useRouter()
   const socket = useContext(Websocket)
   const [message, setMessage] = useState<Message>({
     isSending: false,
     message: ''
   })
-  const [WheelData, setWheelData] = useState<RouletteDataTypes>({
-    data: JSON.parse(props.data),
-    roulette: JSON.parse(props.roulette)
-  })
+  const [WheelData, setWheelData] = useState<RouletteDataTypes>(JSON.parse(props.data))
   const { account } = AccountData((Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD)
   useEffect(() => {
     if (!Config.tgUser() && process.env.NODE_ENV !== 'development') {
@@ -70,14 +57,14 @@ export default function RouletteData(props: RouletteData) {
     //ping send userid to server 
     socket.emit('ping', { id: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
     //join roulette room 
-    socket.emit('join-roulette-room', { id: WheelData.data.id, userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
+    socket.emit('join-roulette-room', { id: WheelData.id, userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
     //new roulette participant 
     socket.on('new-roulette-participant', (new_data: RouletteDataTypes) => {
-      setWheelData({ ...WheelData, data: new_data.data, roulette: new_data.roulette })
+      setWheelData(new_data)
     })
     //new roulette data
     socket.on('roulette-data', (new_data: RouletteDataTypes) => {
-      setWheelData({ ...WheelData, data: new_data.data, roulette: new_data.roulette })
+      setWheelData(new_data)
     })
     //clean up
     return () => {
@@ -112,7 +99,7 @@ export default function RouletteData(props: RouletteData) {
     }, 300)
   }
   const join_roulette = () => {
-    if (!WheelData.data.participants.find(x => x.userid === account.info.id)) {
+    if (!WheelData.participants.find(x => x.userid === account.info.id)) {
       Swal.fire({
         icon: 'question',
         titleText: 'Join Roulette',
@@ -157,12 +144,12 @@ export default function RouletteData(props: RouletteData) {
                 headers: {
                   'content-type': 'application/json'
                 },
-                body: JSON.stringify({ userid: account.info.id, rouletteID: WheelData.data.id })
+                body: JSON.stringify({ userid: account.info.id, rouletteID: WheelData.id })
               })
               if (req.ok) {
                 const { status, title, message } = await req.json()
-                socket.emit('roulette-data', { id: WheelData.data.id }, (new_data: RouletteDataTypes) => {
-                  setWheelData({ ...WheelData, data: new_data.data, roulette: new_data.roulette })
+                socket.emit('roulette-data', { id: WheelData.id }, (new_data: RouletteDataTypes) => {
+                  setWheelData(new_data)
                 })
                 Swal.fire({
                   icon: status ? 'success' : 'info',
@@ -208,7 +195,7 @@ export default function RouletteData(props: RouletteData) {
     setMessage({ ...message, isSending: true })
     if (!message.isSending) {
       socket.emit('send-message', {
-        rouletteID: WheelData.data.id,
+        rouletteID: WheelData.id,
         userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD,
         message: message.message
       }, (res: { status: boolean, title: string, message?: string }) => {
@@ -219,9 +206,8 @@ export default function RouletteData(props: RouletteData) {
   return (
     <>
       <Head>
-        <title>{WheelData.data.name}</title>
+        <title>{WheelData.name}</title>
       </Head>
-      <Background />
       {account ? (
         <>
           <nav className='translucent sticky z-50 top-0 bg-zinc-900 flex items-center justify-between py-2 px-4 lg:px-10'>
@@ -233,7 +219,7 @@ export default function RouletteData(props: RouletteData) {
                     className="cursor-pointer" />
                 </a>
               </Link>
-              <span className='text-xl'>{WheelData.data.name}</span>
+              <span className='text-xl'>{WheelData.name}</span>
             </div>
             <div className='flex gap-3'>
               <FaComments
@@ -244,18 +230,20 @@ export default function RouletteData(props: RouletteData) {
           <div className='relative z-10 flex flex-col w-full overflow-hidden'>
             <div className='flex flex-col items-center gap-3 p-1 md:p-5 w-full mt-10 md:mt-5'>
               <Wheel
-                mustStartSpinning={WheelData.data.startRoulette}
-                prizeNumber={WheelData.data.winner}
-                data={WheelData.roulette}
+                mustStartSpinning={WheelData.startRoulette}
+                prizeNumber={WheelData.winner}
+                data={WheelData.participants}
                 outerBorderWidth={10}
                 innerBorderColor={'green'}
                 fontSize={15}
+                textColors={['#fff']}
                 textDistance={30}
                 spinDuration={0.9}
+                onStopSpinning={() => alert(`Winner ${WheelData.participants[WheelData.winner].userid}`)}
               />
               <div className='flex flex-col gap-3 mt-3'>
                 {/* Check if the user is already joined the roulette */}
-                {!WheelData.data.participants.find(x => x.userid === account.info.id) && !WheelData.data.isDone ? (
+                {!WheelData.participants.find(x => x.userid === account.info.id) && !WheelData.isDone ? (
                   <button
                     onClick={join_roulette}
                     className='dark:bg-teamdao-primary/80 dark:hover:bg-teamdao-primary px-5 py-3 shadow-lg rounded-lg dark:text-black font-bold'>Join Roulette</button>
@@ -317,14 +305,8 @@ export default function RouletteData(props: RouletteData) {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const ROULETTE_DATA = await Roulette.findOne({ id: ctx.query['id'] })
   if (ROULETTE_DATA) {
-    //modify participants array 
-    let new_participants_data: any[] = []
-    ROULETTE_DATA.participants.map((x) => {
-      new_participants_data.push({ option: x.userid, id: x.id, style: { backgroundColor: Color.dark(), textColor: Color.light() } })
-    })
     return {
       props: {
-        roulette: JSON.stringify(new_participants_data),
         data: JSON.stringify(ROULETTE_DATA)
       }
     }

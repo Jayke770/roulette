@@ -12,7 +12,11 @@ interface RouletteTypes {
     participants: {
         id: string,
         userid: string,
-        created: string
+        option: string,
+        created: string,
+        style: {
+            backgroundColor: string
+        }
     }[],
     created: string
 }
@@ -44,7 +48,11 @@ const roulette = new mongoose.Schema<RouletteTypes>({
     participants: [{
         id: String,
         userid: String,
-        created: String
+        created: String,
+        option: String,
+        style: {
+            backgroundColor: String
+        }
     }],
     isDone: {
         type: Boolean

@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next"
 import { Roulette, User } from '../../../../models'
 import moment from 'moment'
 import { getSession } from "next-auth/react"
-import { Config } from "../../../../lib"
+import { Color, Config } from "../../../../lib"
 interface ExtendedNextApiRequest extends NextApiRequest {
     body: {
         userid: string,
@@ -20,7 +20,11 @@ type roulettedata = {
     participants: {
         id: string,
         userid: string,
-        created: string
+        option: string,
+        created: string,
+        style: {
+            backgroundColor: string
+        }
     }[],
     isDone: boolean,
     created: string,
@@ -56,6 +60,10 @@ export default async function NewParticipant(req: ExtendedNextApiRequest, res: N
                                 const NEW_PARTICIPANT = {
                                     id: Config.id(12),
                                     userid: userid,
+                                    option: userid,
+                                    style: {
+                                        backgroundColor: Color.dark()
+                                    },
                                     created: moment().format()
                                 }
                                 await Roulette.updateOne({ id: { $eq: rouletteid } }, { $push: { participants: NEW_PARTICIPANT } })

@@ -18,7 +18,7 @@ export default function _Dialog(props: props) {
         <Transition.Root show={props.open} as={Fragment}>
             <Dialog
                 as="div"
-                className="relative z-10"
+                className="relative z-[99]"
                 onClose={props.onClose}>
                 <Transition.Child
                     as={Fragment}
