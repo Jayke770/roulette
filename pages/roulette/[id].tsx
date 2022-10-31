@@ -222,7 +222,6 @@ export default function RouletteData(props: RouletteData) {
         <title>{WheelData.data.name}</title>
       </Head>
       <Background />
-      <Confetti />
       {account ? (
         <>
           <nav className='translucent sticky z-50 top-0 bg-zinc-900 flex items-center justify-between py-2 px-4 lg:px-10'>
