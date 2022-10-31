@@ -1,6 +1,7 @@
 import App from './settings'
 import { Roulette, User } from '../models'
 import { Color } from '../lib'
+import sanitizeHtml from 'sanitize-html'
 App.ClientWs.on('connection', async (socket) => {
     //client disconnect 
     socket.on('disconnect', async () => {
@@ -33,5 +34,21 @@ App.ClientWs.on('connection', async (socket) => {
             roulette: new_participants_data,
             data: ROULETTE_DATA
         })
+    })
+    //send message 
+    socket.on('send-message', async ({ rouletteID, userid, message }, cb) => {
+        const MESSAGE = sanitizeHtml(message)
+        //get user info 
+        const USERDATA = await User.findOne({ 'info.id': { $eq: userid } }, { info: 1 })
+        if (USERDATA) {
+            //send to admin 
+            App.ControlWs.to(rouletteID).emit('message', { user: USERDATA.info, message: MESSAGE })
+            //send to all client in specific room 
+            socket.broadcast.to(rouletteID).emit('message', { user: USERDATA.info, message: MESSAGE })
+            //send response
+            cb({ status: false, title: 'Message Sent' })
+        } else {
+            cb({ status: false, title: 'User Not Found', message: 'Please try again' })
+        }
     })
 })

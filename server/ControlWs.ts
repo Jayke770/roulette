@@ -67,6 +67,10 @@ App.ControlWs.on('connection', async (socket) => {
             roulette_data = await Roulette.findOne({ id: { $eq: id } })
             socket.emit('roulette-data', { data: roulette_data, roulette: new_participants_data })
             cb({ status: true, title: 'Roulette Started', message: '' })
+            //notify winner 
+            setTimeout(() => {
+                console.log("Winner", roulette_data.participants[WINNER].userid)
+            }, 10000)
         } catch (e) {
             console.log(e)
             cb({ status: false, title: 'Server Error', message: e.message })

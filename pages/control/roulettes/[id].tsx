@@ -47,8 +47,19 @@ type RouletteDataProps = {
     data: any,
     roulette: any
 }
+interface messagesData {
+    user: {
+        id: string;
+        first_name: string;
+        last_name: string;
+        username: string;
+        image: string;
+    },
+    message: string
+}
 export default function RouletteID(props: RouletteDataProps) {
     const socket = useContext(ControlWs)
+    const [messagesData, SetMessagesData] = useState<messagesData[]>([])
     const [chatData, setChatData] = useState({
         open: false
     })
@@ -74,10 +85,18 @@ export default function RouletteID(props: RouletteDataProps) {
         socket.on('roulette-data', (new_data: RouletteData) => {
             if (new_data.data.id === roulette.data.id) SetRoulette(new_data)
         })
+        //messages listener 
+        socket.on('message', (res: messagesData) => {
+            let MESSAGES = messagesData
+            MESSAGES.push(res)
+            SetMessagesData([])
+            SetMessagesData(MESSAGES)
+        })
         //clean up 
         return () => {
             socket.off('join-roulette-room')
             socket.off('roulette-data')
+            socket.off('message')
         }
     }, [])
     const _get_roulette_data = (): void => {
@@ -157,6 +176,7 @@ export default function RouletteID(props: RouletteDataProps) {
         setChatData({ ...chatData, open: !chatData.open })
         document.querySelector('#chats').scrollTop = document.querySelector('#chats').scrollHeight
     }
+    console.log(messagesData)
     return (
         <>
             <Head>
@@ -271,14 +291,18 @@ export default function RouletteID(props: RouletteDataProps) {
                 </div>
                 <div className={`${chatData.open ? 'h-[70vh]' : 'h-0'} flex flex-col transition-all dark:bg-zinc-900`}>
                     <div id='chats' className='flex flex-col overflow-auto gap-3 flex-[85%] w-full p-2'>
-                        <ControlRouletteChatRecieved
-                            username='@rwrqw'
-                            message='fhasfjfhjaf fasjfhjs fasufhsafasf fjasfhsafhjasf \n fasfh' />
-                        <ControlRouletteChatSent
-                            message='faskfkfsaf fajhfas fjafaf fsafasfa fsajfhaf fsajfhsafa sfasfuas fafasfsafsafjsaf fsafassa' />
-                        <ControlRouletteChatRecieved
-                            username='@rwrqw'
-                            message='fsa fasfa' />
+                        {messagesData.map((x, i) => (
+                            x.user.id === 'admin' ? (
+                                <ControlRouletteChatSent
+                                    key={i}
+                                    message={x.message} />
+                            ) : (
+                                <ControlRouletteChatRecieved
+                                    key={i}
+                                    username={`@${x.user.username}`}
+                                    message={x.message} />
+                            )
+                        ))}
                     </div>
                     <div className="flex flex-[10%] p-2 translucent">
                         <div className='relative w-full flex justify-center items-center'>

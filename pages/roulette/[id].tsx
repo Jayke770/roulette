@@ -7,9 +7,9 @@ import { GetServerSideProps } from 'next'
 import { Roulette } from '../../models'
 import { useRouter } from 'next/router'
 import { FaComments, FaArrowLeft, FaPaperPlane } from 'react-icons/fa'
+import { RiLoader5Fill } from 'react-icons/ri'
 import Link from 'next/link'
 import Swal from 'sweetalert2'
-import { faker } from '@faker-js/faker'
 const Wheel = dynamic(
   () => import('react-custom-roulette').then(mod => mod.Wheel),
   { ssr: false, loading: () => <span>Loading</span> }
@@ -45,14 +45,22 @@ type RouletteData = {
   data: any,
   roulette: any
 }
+interface Message {
+  isSending: boolean,
+  message: string
+}
 export default function RouletteData(props: RouletteData) {
   const router = useRouter()
   const socket = useContext(Websocket)
+  const [message, setMessage] = useState<Message>({
+    isSending: false,
+    message: ''
+  })
   const [WheelData, setWheelData] = useState<RouletteDataTypes>({
     data: JSON.parse(props.data),
     roulette: JSON.parse(props.roulette)
   })
-  const { account } = AccountData(process.env.NODE_ENV !== 'development' ? (Config.tgUser())?.id : process.env.NEXT_PUBLIC_HARD)
+  const { account } = AccountData((Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD)
   useEffect(() => {
     if (!Config.tgUser() && process.env.NODE_ENV !== 'development') {
       router.push("404")
@@ -60,9 +68,9 @@ export default function RouletteData(props: RouletteData) {
   })
   useEffect(() => {
     //ping send userid to server 
-    socket.emit('ping', { id: process.env.NODE_ENV !== 'development' ? (Config.tgUser())?.id : process.env.NEXT_PUBLIC_HARD })
+    socket.emit('ping', { id: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
     //join roulette room 
-    socket.emit('join-roulette-room', { id: WheelData.data.id, userid: process.env.NODE_ENV !== 'development' ? (Config.tgUser())?.id : process.env.NEXT_PUBLIC_HARD })
+    socket.emit('join-roulette-room', { id: WheelData.data.id, userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
     //new roulette participant 
     socket.on('new-roulette-participant', (new_data: RouletteDataTypes) => {
       setWheelData({ ...WheelData, data: new_data.data, roulette: new_data.roulette })
@@ -196,6 +204,18 @@ export default function RouletteData(props: RouletteData) {
       })
     }
   }
+  const send_message = () => {
+    setMessage({ ...message, isSending: true })
+    if (!message.isSending) {
+      socket.emit('send-message', {
+        rouletteID: WheelData.data.id,
+        userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD,
+        message: message.message
+      }, (res: { status: boolean, title: string, message?: string }) => {
+        res.status ? setMessage({ ...message, isSending: false, message: '' }) : setMessage({ ...message, isSending: false })
+      })
+    }
+  }
   return (
     <>
       <Head>
@@ -259,32 +279,24 @@ export default function RouletteData(props: RouletteData) {
                   <span className='text-lg font-normal'>Roulette Chats</span>
                 </div>
                 <div id='chats' className='flex p-2 w-full flex-col gap-2 overflow-auto h-[calc(100vh-138px)]'>
-                  {Array.from({ length: 5 }).map((x, i) => (
-                    <ClientRouletteChatSent
-                      key={i}
-                      username={faker.name.firstName()}
-                      message={faker.hacker.phrase()} />
-                  ))}
-                  {Array.from({ length: 5 }).map((x, i) => (
-                    <ClientRouletteChatRecieved
-                      key={i}
-                      username={faker.name.firstName()}
-                      message={faker.hacker.phrase()} />
-                  ))}
-                  {Array.from({ length: 5 }).map((x, i) => (
-                    <ClientRouletteChatSent
-                      key={i}
-                      username={faker.name.firstName()}
-                      message={faker.hacker.phrase()} />
-                  ))}
+
                 </div>
                 <div className="absolute bottom-0 w-full p-2 flex flex-[15%] translucent">
                   <div className='relative w-full flex justify-center items-center'>
                     <textarea
+                      value={message.message}
+                      onInput={(e) => setMessage({ ...message, message: e.currentTarget.value })}
                       placeholder='Message'
                       className='resize-none text-sm min-h-[70px] dark:text-zinc-300 w-full dark:bg-zinc-800 outline-none border-none rounded-lg pr-10 dark:focus:ring-1 dark:focus:ring-teamdao-secondary transition-all' />
-                    <FaPaperPlane
-                      className='absolute right-3 top-3 w-6 h-6' />
+                    <div className='absolute right-3 top-3'>
+                      {message.isSending ? (
+                        <RiLoader5Fill className='w-6 h-6 dark:text-teamdao-primary animate-spin' />
+                      ) : (
+                        <FaPaperPlane
+                          onClick={send_message}
+                          className='w-6 h-6 dark:hover:text-teamdao-primary cursor-pointer' />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

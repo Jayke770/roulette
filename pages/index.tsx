@@ -25,7 +25,7 @@ export default function Home() {
     const socket = useContext(Websocket)
     const { roulettes } = ClientRoulettes('all')
     const [roulettesData, setRouletteData] = useState<RouletteData[]>()
-    const { account } = AccountData(process.env.NODE_ENV !== 'development' ? Config.tgUser()?.id : process.env.NEXT_PUBLIC_HARD)
+    const { account } = AccountData(Config.tgUser()?.id || process.env.NEXT_PUBLIC_HARD)
     useEffect(() => {
         if (!Config.tgUser() && process.env.NODE_ENV !== 'development') {
             router.push("404")
@@ -44,7 +44,7 @@ export default function Home() {
     }, [roulettes, setRouletteData])
     useEffect(() => {
         //ping send userid to server 
-        socket.emit('ping', { id: process.env.NODE_ENV !== 'development' ? Config.tgUser()?.id : process.env.NEXT_PUBLIC_HARD })
+        socket.emit('ping', { id: Config.tgUser()?.id || process.env.NEXT_PUBLIC_HARD })
         //clean up
         return () => {
             socket.off('ping')
