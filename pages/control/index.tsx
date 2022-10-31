@@ -2,8 +2,8 @@ import Head from 'next/head'
 import Link from 'next/link'
 import CountUp from 'react-countup'
 import { getSession } from 'next-auth/react'
-import {GetServerSideProps} from 'next'
-import { ControlMain, ControlNavbar } from '../../components'
+import { GetServerSideProps } from 'next'
+import { ControlMain, ControlNavbar, Confetti } from '../../components'
 const user = {
     name: 'Tom Cook',
     email: 'tom@example.com',
@@ -13,7 +13,7 @@ const user = {
 const card = Array.from({ length: 10 })
 export default function Control() {
     return (
-        <div className='h-screen overflow-auto'>
+        <div className='h-screen overflow-y-auto overflow-x-hidden'>
             <Head>
                 <title>TEAMDAO</title>
             </Head>
@@ -23,7 +23,7 @@ export default function Control() {
                     <div className='transition-all flex flex-col lg:grid lg:grid-cols-3 gap-4 px-2 lg:px-0'>
                         <div className='col-span-2 p-5'>
                             <div className='text-2xl font-medium px-3'>Top Roulettes</div>
-                            <div className='grid gap-2 lg:grid-cols-2 mt-4 p-2 h-[410px] overflow-auto'>
+                            <div className='grid gap-2 lg:grid-cols-2 mt-4 p-2 lg:h-[410px] overflow-auto'>
                                 {card.map((_, i) => (
                                     <Link key={i} href={'#'} passHref>
                                         <div key={i} className='flex flex-col cursor-pointer transition-all dark:bg-green-secondary/25 dark:hover:bg-green-secondary/50 px-4 py-3 rounded-lg shadow-sm'>
@@ -42,7 +42,7 @@ export default function Control() {
                         </div>
                         <div className='p-5'>
                             <div className='text-2xl font-medium px-3'>Active Users</div>
-                            <div className='flex flex-col gap-2 py-3 px-2 h-[425px] overflow-auto mt-4'>
+                            <div className='flex flex-col gap-2 py-3 px-2 lg:h-[425px] overflow-auto mt-4'>
                                 {card.map((_, i) => (
                                     <Link key={i} href={'#'} passHref>
                                         <a className='flex gap-2 items-center cursor-pointer transition-all dark:bg-green-secondary/25 dark:hover:bg-green-secondary/50  px-4 py-3 rounded-lg shadow-sm'>

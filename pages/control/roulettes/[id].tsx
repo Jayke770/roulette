@@ -1,7 +1,17 @@
 import { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/react'
 import Head from 'next/head'
-import { ControlMain, ControlNavbar, ManLoader, ControlRouletteParticipant, ControlRouletteCreateNewPaticipant, ControlRouletteSettings, ControlRouletteChatRecieved, ControlRouletteChatSent } from '../../../components'
+import {
+    ControlMain,
+    ControlNavbar,
+    ManLoader,
+    ControlRouletteParticipant,
+    ControlRouletteCreateNewPaticipant,
+    ControlRouletteSettings,
+    ControlRouletteChatRecieved,
+    ControlRouletteChatSent,
+    Confetti
+} from '../../../components'
 import { Roulette } from '../../../models'
 import { useState, useContext, useEffect } from 'react'
 import { Color, ControlWs } from '../../../lib'
@@ -176,7 +186,6 @@ export default function RouletteID(props: RouletteDataProps) {
         setChatData({ ...chatData, open: !chatData.open })
         document.querySelector('#chats').scrollTop = document.querySelector('#chats').scrollHeight
     }
-    console.log(messagesData)
     return (
         <>
             <Head>
@@ -252,7 +261,7 @@ export default function RouletteID(props: RouletteDataProps) {
                                     innerBorderColor={'green'}
                                     fontSize={13}
                                     textDistance={40}
-                                    spinDuration={1.0}
+                                    spinDuration={10}
                                 />
                                 {!roulette.data.isDone && (
                                     <div className='absolute w-full h-full top-0 flex justify-center items-center z-50'>

@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Websocket, Color, Config, AccountData } from '../../lib'
 import Head from 'next/head'
-import { Background, ClientRouletteChatRecieved, ClientRouletteChatSent } from '../../components'
+import { Background, ClientRouletteChatRecieved, ClientRouletteChatSent, Confetti } from '../../components'
 import { GetServerSideProps } from 'next'
 import { Roulette } from '../../models'
 import { useRouter } from 'next/router'
@@ -222,6 +222,7 @@ export default function RouletteData(props: RouletteData) {
         <title>{WheelData.data.name}</title>
       </Head>
       <Background />
+      <Confetti />
       {account ? (
         <>
           <nav className='translucent sticky z-50 top-0 bg-zinc-900 flex items-center justify-between py-2 px-4 lg:px-10'>
