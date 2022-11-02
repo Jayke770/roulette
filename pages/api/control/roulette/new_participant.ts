@@ -22,6 +22,7 @@ type roulettedata = {
         userid: string,
         option: string,
         created: string,
+        removed: boolean,
         style: {
             backgroundColor: string
         }
@@ -61,6 +62,7 @@ export default async function NewParticipant(req: ExtendedNextApiRequest, res: N
                                     id: Config.id(12),
                                     userid: userid,
                                     option: userid,
+                                    removed: false,
                                     style: {
                                         backgroundColor: Color.dark()
                                     },

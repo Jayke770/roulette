@@ -1,6 +1,28 @@
 import App from './settings'
 import { Roulette, User } from '../models'
 import sanitizeHtml from 'sanitize-html'
+type RouletteTypes = {
+    id: string,
+    autoStart: boolean,
+    name: string,
+    prize: string,
+    startRoulette: boolean,
+    StartDate: string,
+    maxParticipants: number,
+    isDone: boolean,
+    winner: number,
+    participants: {
+        id: string,
+        userid: string,
+        option: string,
+        created: string,
+        removed: boolean,
+        style: {
+            backgroundColor: string
+        }
+    }[],
+    created: string
+}
 App.ClientWs.on('connection', async (socket) => {
     //client disconnect 
     socket.on('disconnect', async () => {
@@ -23,8 +45,12 @@ App.ClientWs.on('connection', async (socket) => {
     })
     //get roulette data 
     socket.on('roulette-data', async ({ id }, cb) => {
-        const ROULETTE_DATA = await Roulette.findOne({ id: { $eq: id } })
-        cb(ROULETTE_DATA)
+        const ROULETTE_DATA: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
+        let participants: any[] = []
+        ROULETTE_DATA.participants.map((x) => {
+            if (!x.removed) participants.push(x)
+        })
+        cb({ data: ROULETTE_DATA, participants: participants })
     })
     //send message 
     socket.on('send-message', async ({ rouletteID, userid, message }, cb) => {

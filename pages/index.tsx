@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import { ClientMain, ClientNavbar, ClientRouletteCard } from '../components'
-import { AccountData, ClientRoulettes, Config, Websocket } from '../lib'
+import Websocket from '../lib/Client/Ws'
+import { AccountData, ClientRoulettes, Config } from '../lib'
 import { useContext, useState } from 'react'
 import Link from 'next/link'
 import moment from 'moment'

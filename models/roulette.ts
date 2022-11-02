@@ -14,6 +14,7 @@ interface RouletteTypes {
         userid: string,
         option: string,
         created: string,
+        removed: boolean,
         style: {
             backgroundColor: string
         }
@@ -50,6 +51,7 @@ const roulette = new mongoose.Schema<RouletteTypes>({
         userid: String,
         created: String,
         option: String,
+        removed: Boolean,
         style: {
             backgroundColor: String
         }

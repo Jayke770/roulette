@@ -2,16 +2,15 @@ import { Dialog, Transition } from "@headlessui/react"
 import { Fragment, useState } from "react"
 import { RiLoader5Fill } from "react-icons/ri"
 import { Dialog as _Dialog } from '../../../'
-import { useContext } from 'react'
-import { ControlWs } from '../../../../lib'
+import { Socket } from 'socket.io-client'
 interface props {
     open: boolean,
     closeModal: () => void,
     rouletteID: string,
-    _get_roulette_data: () => void
+    _get_roulette_data: () => void,
+    socket: Socket
 }
-export default function NewParticipant({ open, closeModal, rouletteID, _get_roulette_data }: props) {
-    const socket = useContext(ControlWs)
+export default function NewParticipant({ open, closeModal, rouletteID, _get_roulette_data, socket }: props) {
     const [participant, setParticipant] = useState({
         userid: '',
         isLoading: false

@@ -8,4 +8,5 @@ App.httpServer.listen(App.port, async () => {
     { command: 'start', description: 'Start Bot' }
   ])
   console.log(`> Ready on ${App.port}`)
+  console.log(`> Host ${process.env.HOST}`)
 })

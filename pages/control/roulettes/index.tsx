@@ -2,13 +2,42 @@ import Head from "next/head"
 import { ControlCreateRoulette, ControlMain, ControlNavbar, ControlRouletteCard, ManLoader } from "../../../components"
 import { FaPlus } from 'react-icons/fa'
 import Link from "next/link"
-import { useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import ControlWs from '../../../lib/Control/Ws'
 import { ControlRoulettes } from "../../../lib"
 import { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/react'
+interface RouletteData {
+    id: string,
+    autoStart: boolean,
+    name: string,
+    prize: string,
+    StartDate: string,
+    maxParticipants: number,
+    isDone: boolean,
+    participants: {
+        id: string,
+        userid: string,
+        created: string
+    }[],
+    created: string
+}
 export default function Roulettes() {
+    const socket = useContext(ControlWs)
     const [createModal, setCreateModal] = useState(false)
     const { roulettes } = ControlRoulettes()
+    const [roulettesData, setRoulettesData] = useState<RouletteData[]>()
+    useEffect(() => {
+        if (roulettes) setRoulettesData(roulettes)
+    }, [roulettes, setRoulettesData])
+    //socket events
+    useEffect(() => {
+        //roulette 
+        socket.on('roulettes', (res: RouletteData[]) => setRoulettesData(res))
+        return () => {
+            socket.off('roulettes')
+        }
+    }, [])
     return (
         <>
             <Head>
@@ -36,9 +65,9 @@ export default function Roulettes() {
                         </div>
                     </div>
                     <div className="transition-all grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                        {roulettes ? (
-                            roulettes.length > 0 ? (
-                                roulettes.map((x, i: number) => (
+                        {roulettesData ? (
+                            roulettesData.length > 0 ? (
+                                roulettesData.map((x, i: number) => (
                                     <Link key={i} href={`/control/roulettes/${x.id}`} passHref>
                                         <a>
                                             <ControlRouletteCard
@@ -58,6 +87,7 @@ export default function Roulettes() {
                 </div>
             </ControlMain>
             <ControlCreateRoulette
+                socket={socket}
                 open={createModal}
                 closeModal={() => setCreateModal(false)} />
         </>

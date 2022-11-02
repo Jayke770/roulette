@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { Websocket, Color, Config, AccountData } from '../../lib'
+import Websocket from '../../lib/Client/Ws'
+import { Config, AccountData } from '../../lib'
 import Head from 'next/head'
 import { Background, ClientRouletteChatRecieved, ClientRouletteChatSent, Confetti } from '../../components'
 import { GetServerSideProps } from 'next'
@@ -15,38 +16,62 @@ const Wheel = dynamic(
   { ssr: false, loading: () => <span>Loading</span> }
 )
 interface RouletteDataTypes {
-  id: string,
-  autoStart: boolean,
-  name: string,
-  prize: string,
-  StartDate: string,
-  maxParticipants: number,
-  isDone: boolean,
-  startRoulette: boolean,
-  winner: number,
+  data: {
+    id: string,
+    autoStart: boolean,
+    name: string,
+    prize: string,
+    StartDate: string,
+    maxParticipants: number,
+    isDone: boolean,
+    startRoulette: boolean,
+    winner: number,
+    participants: {
+      id: string,
+      userid: string,
+      option: string,
+      created: string,
+      removed: boolean,
+      style: {
+        backgroundColor: string
+      }
+    }[],
+    created: string
+  },
   participants: {
     id: string,
     userid: string,
     option: string,
     created: string,
+    removed: boolean,
     style: {
       backgroundColor: string
     }
-  }[],
-  created: string
+  }[]
 }
 interface Message {
   isSending: boolean,
   message: string
 }
-export default function RouletteData(props: { data: any }) {
+interface RouletteSettings {
+  start: boolean,
+  selected: number | null
+}
+export default function RouletteData(props: { data: any, participants: any }) {
   const router = useRouter()
   const socket = useContext(Websocket)
   const [message, setMessage] = useState<Message>({
     isSending: false,
     message: ''
   })
-  const [WheelData, setWheelData] = useState<RouletteDataTypes>(JSON.parse(props.data))
+  const [rouletteSettings, SetRouletteSettings] = useState<RouletteSettings>({
+    start: false,
+    selected: null
+  })
+  const [WheelData, setWheelData] = useState<RouletteDataTypes>({
+    data: JSON.parse(props.data),
+    participants: JSON.parse(props.participants)
+  })
   const { account } = AccountData((Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD)
   useEffect(() => {
     if (!Config.tgUser() && process.env.NODE_ENV !== 'development') {
@@ -57,23 +82,22 @@ export default function RouletteData(props: { data: any }) {
     //ping send userid to server 
     socket.emit('ping', { id: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
     //join roulette room 
-    socket.emit('join-roulette-room', { id: WheelData.id, userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
+    socket.emit('join-roulette-room', { id: WheelData.data.id, userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
     //new roulette participant 
-    socket.on('new-roulette-participant', (new_data: RouletteDataTypes) => {
-      setWheelData(new_data)
-    })
+    socket.on('new-roulette-participant', (new_data: RouletteDataTypes) => setWheelData(new_data))
     //new roulette data
-    socket.on('roulette-data', (new_data: RouletteDataTypes) => {
-      setWheelData(new_data)
-    })
+    socket.on('roulette-data', (new_data: RouletteDataTypes) => setWheelData(new_data))
+    //start roulette 
+    socket.on('start-roulette', (res: { selected: number }) => SetRouletteSettings({ ...rouletteSettings, start: true, selected: res.selected }))
     //clean up
     return () => {
       socket.off('ping')
       socket.off('join-roulette-room')
       socket.off('new-roulette-participant')
+      socket.off('start-roulette')
     }
   }, [])
-  const chat_open = () => {
+  const chat_open = (): void => {
     const div = document.querySelector("#main-msg")
     //remove animate out animation 
     const animate_out: string[] = div.attributes.getNamedItem('animate-out').value.split(' ')
@@ -85,7 +109,7 @@ export default function RouletteData(props: { data: any }) {
     document.querySelector('#main-wrapper-msg').classList.add('flex')
     document.querySelector('#chats').scrollTop = document.querySelector('#chats').scrollHeight
   }
-  const chat_close = () => {
+  const chat_close = (): void => {
     const div = document.querySelector("#main-msg")
     //remove animate in animation 
     const animate_in: string[] = div.attributes.getNamedItem('animate-in').value.split(' ')
@@ -98,7 +122,7 @@ export default function RouletteData(props: { data: any }) {
       document.querySelector('#main-wrapper-msg').classList.add('hidden')
     }, 300)
   }
-  const join_roulette = () => {
+  const join_roulette = (): void => {
     if (!WheelData.participants.find(x => x.userid === account.info.id)) {
       Swal.fire({
         icon: 'question',
@@ -144,13 +168,11 @@ export default function RouletteData(props: { data: any }) {
                 headers: {
                   'content-type': 'application/json'
                 },
-                body: JSON.stringify({ userid: account.info.id, rouletteID: WheelData.id })
+                body: JSON.stringify({ userid: account.info.id, rouletteID: WheelData.data.id })
               })
               if (req.ok) {
                 const { status, title, message } = await req.json()
-                socket.emit('roulette-data', { id: WheelData.id }, (new_data: RouletteDataTypes) => {
-                  setWheelData(new_data)
-                })
+                _get_roulette_data()
                 Swal.fire({
                   icon: status ? 'success' : 'info',
                   backdrop: true,
@@ -191,11 +213,11 @@ export default function RouletteData(props: { data: any }) {
       })
     }
   }
-  const send_message = () => {
+  const send_message = (): void => {
     setMessage({ ...message, isSending: true })
     if (!message.isSending) {
       socket.emit('send-message', {
-        rouletteID: WheelData.id,
+        rouletteID: WheelData.data.id,
         userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD,
         message: message.message
       }, (res: { status: boolean, title: string, message?: string }) => {
@@ -203,10 +225,17 @@ export default function RouletteData(props: { data: any }) {
       })
     }
   }
+  const _get_roulette_data = (): void => {
+    socket.emit('roulette-data', { id: WheelData.data.id }, (res: RouletteDataTypes) => setWheelData(res))
+  }
+  const _stop_spin = (): void => {
+    SetRouletteSettings({ ...rouletteSettings, start: false })
+    _get_roulette_data()
+  }
   return (
     <>
       <Head>
-        <title>{WheelData.name}</title>
+        <title>{WheelData.data.name}</title>
       </Head>
       {account ? (
         <>
@@ -219,7 +248,7 @@ export default function RouletteData(props: { data: any }) {
                     className="cursor-pointer" />
                 </a>
               </Link>
-              <span className='text-xl'>{WheelData.name}</span>
+              <span className='text-xl'>{WheelData.data.name}</span>
             </div>
             <div className='flex gap-3'>
               <FaComments
@@ -230,8 +259,8 @@ export default function RouletteData(props: { data: any }) {
           <div className='relative z-10 flex flex-col w-full overflow-hidden'>
             <div className='flex flex-col items-center gap-3 p-1 md:p-5 w-full mt-10 md:mt-5'>
               <Wheel
-                mustStartSpinning={WheelData.startRoulette}
-                prizeNumber={WheelData.winner}
+                mustStartSpinning={rouletteSettings.start}
+                prizeNumber={rouletteSettings.selected}
                 data={WheelData.participants}
                 outerBorderWidth={10}
                 innerBorderColor={'green'}
@@ -239,15 +268,19 @@ export default function RouletteData(props: { data: any }) {
                 textColors={['#fff']}
                 textDistance={30}
                 spinDuration={0.9}
-                onStopSpinning={() => alert(`Winner ${WheelData.participants[WheelData.winner].userid}`)}
+                onStopSpinning={_stop_spin}
               />
               <div className='flex flex-col gap-3 mt-3'>
                 {/* Check if the user is already joined the roulette */}
-                {!WheelData.participants.find(x => x.userid === account.info.id) && !WheelData.isDone ? (
+                {!WheelData.data.participants.find(x => x.userid === account.info.id) && !WheelData.data.isDone && (
                   <button
                     onClick={join_roulette}
                     className='dark:bg-teamdao-primary/80 dark:hover:bg-teamdao-primary px-5 py-3 shadow-lg rounded-lg dark:text-black font-bold'>Join Roulette</button>
-                ) : null}
+                )}
+                {/* Check if roulette is already done */}
+                {WheelData.data.isDone && (
+                  <div>Done</div>
+                )}
               </div>
             </div>
           </div >
@@ -305,8 +338,13 @@ export default function RouletteData(props: { data: any }) {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const ROULETTE_DATA = await Roulette.findOne({ id: ctx.query['id'] })
   if (ROULETTE_DATA) {
+    let participants: any[] = []
+    ROULETTE_DATA.participants.map((x) => {
+      if (!x.removed) participants.push(x)
+    })
     return {
       props: {
+        participants: JSON.stringify(participants),
         data: JSON.stringify(ROULETTE_DATA)
       }
     }

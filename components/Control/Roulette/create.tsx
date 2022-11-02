@@ -1,8 +1,9 @@
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment, useState } from 'react'
 import { RiLoader5Fill } from 'react-icons/ri'
+import { Socket } from 'socket.io-client'
 import { Dialog as _Dialog } from '../../'
-export default function CreateRoulette({ open, closeModal }) {
+export default function CreateRoulette({ open, closeModal, socket }: { open: boolean, closeModal: () => void, socket: Socket }) {
     const [create, setCreate] = useState({
         autoStart: false,
         name: '',
@@ -29,6 +30,7 @@ export default function CreateRoulette({ open, closeModal }) {
                 }).then(async (req) => {
                     if (req.ok) {
                         const { status, title, message } = await req.json()
+                        socket.emit('new-roulette')
                         //show modal
                         setDialog({ ...dialog, open: true, title: title, message: message, icon: status ? 'success' : 'error' })
                         setCreate({ ...create, isLoading: false, name: '', prize: '' })
