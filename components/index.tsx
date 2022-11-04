@@ -16,3 +16,4 @@ export { default as ControlRouletteChatSent } from './Control/Roulette/Chat/sent
 export { default as ClientRouletteChatRecieved } from './Client/Roulette/Chat/received'
 export { default as ClientRouletteChatSent } from './Client/Roulette/Chat/sent'
 export { default as Confetti } from './Confetti'
+export { default as ControlUserCard } from './Control/User'
