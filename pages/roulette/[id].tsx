@@ -11,6 +11,7 @@ import { FaComments, FaArrowLeft, FaPaperPlane } from 'react-icons/fa'
 import { RiLoader5Fill } from 'react-icons/ri'
 import Link from 'next/link'
 import Swal from 'sweetalert2'
+import _Dialog from '../../components/Dialog'
 const Wheel = dynamic(
   () => import('react-custom-roulette').then(mod => mod.Wheel),
   { ssr: false, loading: () => <span>Loading</span> }
@@ -60,6 +61,13 @@ interface RouletteSettings {
 export default function RouletteData(props: { data: any, participants: any }) {
   const router = useRouter()
   const socket = useContext(Websocket)
+  const [showConfetti, setshowConfetti] = useState(false)
+  const [dialog, setDialog] = useState({
+    open: false,
+    title: '',
+    message: '',
+    icon: 'success'
+  })
   const [message, setMessage] = useState<Message>({
     isSending: false,
     message: ''
@@ -78,25 +86,6 @@ export default function RouletteData(props: { data: any, participants: any }) {
       router.push("404")
     }
   })
-  useEffect(() => {
-    //ping send userid to server 
-    socket.emit('ping', { id: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
-    //join roulette room 
-    socket.emit('join-roulette-room', { id: WheelData.data.id, userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
-    //new roulette participant 
-    socket.on('new-roulette-participant', (new_data: RouletteDataTypes) => setWheelData(new_data))
-    //new roulette data
-    socket.on('roulette-data', (new_data: RouletteDataTypes) => setWheelData(new_data))
-    //start roulette 
-    socket.on('start-roulette', (res: { selected: number }) => SetRouletteSettings({ ...rouletteSettings, start: true, selected: res.selected }))
-    //clean up
-    return () => {
-      socket.off('ping')
-      socket.off('join-roulette-room')
-      socket.off('new-roulette-participant')
-      socket.off('start-roulette')
-    }
-  }, [])
   const chat_open = (): void => {
     const div = document.querySelector("#main-msg")
     //remove animate out animation 
@@ -229,9 +218,55 @@ export default function RouletteData(props: { data: any, participants: any }) {
     socket.emit('roulette-data', { id: WheelData.data.id }, (res: RouletteDataTypes) => setWheelData(res))
   }
   const _stop_spin = (): void => {
+    Swal.fire({
+      icon: 'info',
+      text: `User ${WheelData.participants[rouletteSettings.selected].userid} has lost the raffle.`,
+      backdrop: true,
+      allowOutsideClick: false,
+      timer: 4000,
+      timerProgressBar: true
+    })
     SetRouletteSettings({ ...rouletteSettings, start: false })
     _get_roulette_data()
   }
+  const close_dialog = (): void => {
+    setDialog({ ...dialog, open: false })
+    setshowConfetti(false)
+  }
+  const roulette_winner = (userid: string): void => {
+    Swal.close()
+    setTimeout(() => {
+      setshowConfetti(true)
+      setDialog({
+        ...dialog,
+        title: `User ${userid} won the raffle.`,
+        open: true,
+        message: `Prize ${WheelData.data.prize}`
+      })
+    }, 500)
+  }
+  useEffect(() => {
+    //ping send userid to server 
+    socket.emit('ping', { id: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
+    //join roulette room 
+    socket.emit('join-roulette-room', { id: WheelData.data.id, userid: (Config.tgUser())?.id || process.env.NEXT_PUBLIC_HARD })
+    //new roulette participant 
+    socket.on('new-roulette-participant', (new_data: RouletteDataTypes) => setWheelData(new_data))
+    //new roulette data
+    socket.on('roulette-data', (new_data: RouletteDataTypes) => setWheelData(new_data))
+    //start roulette 
+    socket.on('start-roulette', (res: { selected: number }) => SetRouletteSettings({ ...rouletteSettings, start: true, selected: res.selected }))
+    //roulette winner 
+    socket.on('roulette-winner', (res: { rouletteID: string, userid: string }) => roulette_winner(res.userid))
+    //clean up
+    return () => {
+      socket.off('ping')
+      socket.off('join-roulette-room')
+      socket.off('new-roulette-participant')
+      socket.off('start-roulette')
+      socket.off('roulette-winner')
+    }
+  }, [])
   return (
     <>
       <Head>
@@ -332,6 +367,17 @@ export default function RouletteData(props: { data: any, participants: any }) {
           </div>
         </>
       ) : null}
+      {/* Confetti */}
+      {showConfetti && <Confetti />}
+      {/* Dialog */}
+      <_Dialog
+        open={dialog.open}
+        onClose={close_dialog}
+        title={dialog.title}
+        message={dialog.message}
+        backdrop={false}
+        showCancelButton={true}
+        icon={dialog.icon} />
     </>
   )
 }

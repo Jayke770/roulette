@@ -72,14 +72,18 @@ App.ControlWs.on('connection', async (socket) => {
             })
             //bake the winner 
             const REMOVE_INDEX = Math.floor(Math.random() * remaining_unselected.length)
-            //remove the index
-            await Roulette.updateOne({
-                id: { $eq: id },
-                participants: { $elemMatch: { id: { $eq: remaining_unselected[REMOVE_INDEX].id } } }
-            }, { $set: { "participants.$.removed": true } })
+            cb({ status: true, title: 'Roulette Started', selected: REMOVE_INDEX })
             //send to all users 
             App.ClientWs.to(id).emit('start-roulette', { selected: REMOVE_INDEX })
-            cb({ status: true, title: 'Roulette Started', selected: REMOVE_INDEX })
+            setTimeout(async () => {
+                //remove the index
+                await Roulette.updateOne({
+                    id: { $eq: id },
+                    participants: { $elemMatch: { id: { $eq: remaining_unselected[REMOVE_INDEX].id } } }
+                }, { $set: { "participants.$.removed": true } })
+                //send message to user 
+                await bot.api.sendMessage(remaining_unselected[REMOVE_INDEX].userid, `You have lost in raffle ${ROULETTE_DATA.name}. Try again next time.`)
+            }, 9000)
         } catch (e) {
             console.log(e)
             cb({ status: false, title: 'Server Error' })
@@ -102,17 +106,22 @@ App.ControlWs.on('connection', async (socket) => {
                     }
                 })
                 ROULETTE_DATA = await Roulette.findOne({ id: { $eq: id } })
-                //send message to winner
-                await bot.api.sendMessage(WINNER.userid, `You won ${ROULETTE_DATA.prize} in the ${ROULETTE_DATA.name}.`, {
-                    reply_markup: {
-                        inline_keyboard: [[
-                            { text: 'Check Raffle', web_app: { url: `${process.env.HOST}/roulette/${ROULETTE_DATA.id}` } }
-                        ]]
-                    }
-                })
+                cb({ status: true })
                 //send to all users 
                 App.ClientWs.to(id).emit('roulette-data', { data: ROULETTE_DATA, participants: [WINNER] })
-                cb({ status: true })
+                //emit events to control and client that we have a winner
+                App.ClientWs.to(id).emit('roulette-winner', { rouletteID: ROULETTE_DATA.id, userid: WINNER.userid })
+                App.ControlWs.to(id).emit('roulette-winner', { rouletteID: ROULETTE_DATA.id, userid: WINNER.userid })
+                setTimeout(async () => {
+                    //send message to winner
+                    await bot.api.sendMessage(WINNER.userid, `You won ${ROULETTE_DATA.prize} in the ${ROULETTE_DATA.name}.`, {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                { text: 'Check Raffle', web_app: { url: `${process.env.HOST}/roulette/${ROULETTE_DATA.id}` } }
+                            ]]
+                        }
+                    })
+                }, 9000)
             } else {
                 cb({ status: false })
             }

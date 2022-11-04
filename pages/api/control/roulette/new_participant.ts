@@ -64,7 +64,7 @@ export default async function NewParticipant(req: ExtendedNextApiRequest, res: N
                                     option: userid,
                                     removed: false,
                                     style: {
-                                        backgroundColor: Color.dark()
+                                        backgroundColor: Color.default()
                                     },
                                     created: moment().format()
                                 }
