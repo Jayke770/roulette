@@ -1,7 +1,6 @@
 export { default as Color } from './Color'
-export { default as Websocket } from './Client/Ws'
 export { default as Config } from './Config'
 export { default as ControlRoulettes } from './Control/Roulette'
-export { default as ControlWs } from './Control/Ws'
+export { default as ControlUsers } from './Control/Users'
 export { default as ClientRoulettes } from './Client/Roulettes'
 export { default as AccountData } from './Client/Account/data'

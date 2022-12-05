@@ -1,6 +1,8 @@
 import { Color } from '../lib'
 import { Roulette, User } from '../models'
 import App from './settings'
+import tg from '../Bot'
+const bot = tg.bot
 type RouletteTypes = {
     id: string,
     autoStart: boolean,
@@ -14,10 +16,25 @@ type RouletteTypes = {
     participants: {
         id: string,
         userid: string,
-        created: string
+        option: string,
+        created: string,
+        removed: boolean,
+        style: {
+            backgroundColor: string
+        }
     }[],
     created: string
 }
+type participants = {
+    id: string,
+    userid: string,
+    option: string,
+    created: string,
+    removed: boolean,
+    style: {
+        backgroundColor: string
+    }
+}[]
 App.ControlWs.on('connection', async (socket) => {
     //get user info 
     socket.on('user-info', async ({ id }, cb) => {
@@ -38,46 +55,96 @@ App.ControlWs.on('connection', async (socket) => {
     socket.on("new-roulette-participant", async ({ id }) => {
         //notify all users in roulette room 
         const ROULETTE_DATA: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
+        let participants: any[] = []
+        ROULETTE_DATA.participants.map((x) => {
+            if (!x.removed) participants.push(x)
+        })
         //send to roulette room
-        App.ClientWs.to(id).emit('new-roulette-participant', ROULETTE_DATA)
+        App.ClientWs.to(id).emit('new-roulette-participant', { data: ROULETTE_DATA, participants: participants })
     })
     //start roulette 
     socket.on('start-roulette', async ({ id }, cb) => {
         try {
-            let roulette_data: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
+            const ROULETTE_DATA: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
+            let remaining_unselected: participants = []
+            ROULETTE_DATA.participants.map((x) => {
+                if (!x.removed) remaining_unselected.push(x)
+            })
             //bake the winner 
-            const WINNER = Math.floor(Math.random() * roulette_data.participants.length)
-            //update roulette winner & startRoulette key 
-            await Roulette.updateOne({ id: { $eq: id } }, { $set: { winner: WINNER, startRoulette: true } })
-            //get the latest roulette data 
-            roulette_data = await Roulette.findOne({ id: { $eq: id } })
-            //emit to roulette room 
-            App.ClientWs.to(id).emit('roulette-data', roulette_data)
-            //emit to admin
-            await Roulette.updateOne({ id: { $eq: id } }, { $set: { isDone: true } })
-            //send to admin 
-            roulette_data = await Roulette.findOne({ id: { $eq: id } })
-            socket.emit('roulette-data', roulette_data)
-            cb({ status: true, title: 'Roulette Started', message: '' })
-            //notify winner 
+            const REMOVE_INDEX = Math.floor(Math.random() * remaining_unselected.length)
+            cb({ status: true, title: 'Roulette Started', selected: REMOVE_INDEX })
+            //send to all users 
+            App.ClientWs.to(id).emit('start-roulette', { selected: REMOVE_INDEX })
             setTimeout(async () => {
-                console.log("Winner", roulette_data.participants[WINNER].userid)
-                await Roulette.updateOne({ id: { $eq: id } }, { $set: { startRoulette: false } })
-                roulette_data = await Roulette.findOne({ id: { $eq: id } })
-                App.ClientWs.to(id).emit('roulette-data', roulette_data)
-            }, 5000)
+                //remove the index
+                await Roulette.updateOne({
+                    id: { $eq: id },
+                    participants: { $elemMatch: { id: { $eq: remaining_unselected[REMOVE_INDEX].id } } }
+                }, { $set: { "participants.$.removed": true } })
+                //send message to user 
+                await bot.api.sendMessage(remaining_unselected[REMOVE_INDEX].userid, `You have lost in raffle ${ROULETTE_DATA.name}. Try again next time.`)
+            }, 9000)
         } catch (e) {
             console.log(e)
-            cb({ status: false, title: 'Server Error', message: e.message })
+            cb({ status: false, title: 'Server Error' })
+        }
+    })
+    //check the winner 
+    socket.on('who-is-the-winner', async ({ id }, cb) => {
+        try {
+            //get roulette data
+            let ROULETTE_DATA: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
+            const REMAINING_UNSELECTED = ROULETTE_DATA.participants.reduce((sum, x) => sum + (x.removed ? 0 : 1), 0)
+            if (REMAINING_UNSELECTED === 1) {
+                const WINNER = ROULETTE_DATA.participants.find(x => !x.removed)
+                //update roulette data 
+                await Roulette.updateOne({ id: { $eq: id } }, {
+                    $set: {
+                        isDone: true,
+                        startRoulette: false,
+                        winner: ROULETTE_DATA.participants.indexOf(WINNER)
+                    }
+                })
+                ROULETTE_DATA = await Roulette.findOne({ id: { $eq: id } })
+                cb({ status: true })
+                //send to all users 
+                App.ClientWs.to(id).emit('roulette-data', { data: ROULETTE_DATA, participants: [WINNER] })
+                //emit events to control and client that we have a winner
+                App.ClientWs.to(id).emit('roulette-winner', { rouletteID: ROULETTE_DATA.id, userid: WINNER.userid })
+                App.ControlWs.to(id).emit('roulette-winner', { rouletteID: ROULETTE_DATA.id, userid: WINNER.userid })
+                setTimeout(async () => {
+                    //send message to winner
+                    await bot.api.sendMessage(WINNER.userid, `You won ${ROULETTE_DATA.prize} in the ${ROULETTE_DATA.name}.`, {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                { text: 'Check Raffle', web_app: { url: `${process.env.HOST}/roulette/${ROULETTE_DATA.id}` } }
+                            ]]
+                        }
+                    })
+                }, 9000)
+            } else {
+                cb({ status: false })
+            }
+        } catch (e) {
+            console.log(e)
+            cb({ status: false })
         }
     })
     //get roulette data 
     socket.on('roulette-data', async ({ id }, cb) => {
-        try {
-            const roulette_data: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
-            cb(roulette_data)
-        } catch (e) {
-            cb({ status: false, title: "Connection Error", message: e.message })
-        }
+        const ROULETTE_DATA: RouletteTypes = await Roulette.findOne({ id: { $eq: id } })
+        let participants: any[] = []
+        ROULETTE_DATA.participants.map((x) => {
+            if (!x.removed) participants.push(x)
+        })
+        cb({ data: ROULETTE_DATA, participants: participants })
+    })
+    //new roulette 
+    socket.on('new-roulette', async () => {
+        const ROULETTE_DATA: RouletteTypes[] = await Roulette.find({}).sort({ _id: -1 })
+        //send to admin 
+        App.ControlWs.emit('roulettes', ROULETTE_DATA)
+        //send to all users 
+        App.ClientWs.emit('roulettes', ROULETTE_DATA)
     })
 })

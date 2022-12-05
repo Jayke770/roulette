@@ -14,38 +14,51 @@ import {
 } from '../../../components'
 import { Roulette } from '../../../models'
 import { useState, useContext, useEffect } from 'react'
-import { Color, ControlWs } from '../../../lib'
+import ControlWs from '../../../lib/Control/Ws'
+import { Color } from '../../../lib'
 import { FaPlus, FaCog } from 'react-icons/fa'
 import { Tab } from '@headlessui/react'
 import dynamic from 'next/dynamic'
 import _Dialog from '../../../components/Dialog'
 import Swal from 'sweetalert2'
 import { FaPaperPlane } from 'react-icons/fa'
-import { useRef } from 'react'
 const Wheel = dynamic(
     () => import('react-custom-roulette').then(mod => mod.Wheel),
     { ssr: false, loading: () => <span>Loading</span> }
 )
 interface RouletteData {
-    id: string,
-    autoStart: boolean,
-    name: string,
-    prize: string,
-    StartDate: string,
-    maxParticipants: number,
-    isDone: boolean,
-    startRoulette: boolean,
-    winner: number,
+    data: {
+        id: string,
+        autoStart: boolean,
+        name: string,
+        prize: string,
+        StartDate: string,
+        maxParticipants: number,
+        isDone: boolean,
+        startRoulette: boolean,
+        winner: number,
+        participants: {
+            id: string,
+            userid: string,
+            option: string,
+            created: string,
+            removed: boolean,
+            style: {
+                backgroundColor: string
+            }
+        }[],
+        created: string
+    },
     participants: {
         id: string,
         userid: string,
         option: string,
         created: string,
+        removed: boolean,
         style: {
             backgroundColor: string
         }
-    }[],
-    created: string
+    }[]
 }
 interface messagesData {
     user: {
@@ -57,17 +70,28 @@ interface messagesData {
     },
     message: string
 }
-export default function RouletteID(props: { data: any }) {
+interface RouletteSettings {
+    isLoading: boolean,
+    start: boolean,
+    selected: number | null
+}
+export default function RouletteID(props: { data: any, participants: any }) {
     const socket = useContext(ControlWs)
     const [messagesData, SetMessagesData] = useState<messagesData[]>([])
+    const [showConfetti, setshowConfetti] = useState(false)
     const [chatData, setChatData] = useState({
         open: false
     })
-    const [roulette, SetRoulette] = useState<RouletteData>(JSON.parse(props.data))
+    const [roulette, SetRoulette] = useState<RouletteData>({
+        data: JSON.parse(props.data),
+        participants: JSON.parse(props.participants)
+    })
     const [createParticipant, SetCreateParticipant] = useState(false)
     const [tab, setTab] = useState('info')
-    const [rouletteSettings, SetRouletteSettings] = useState({
-        isLoading: false
+    const [rouletteSettings, SetRouletteSettings] = useState<RouletteSettings>({
+        isLoading: false,
+        start: false,
+        selected: null
     })
     const [dialog, setDialog] = useState({
         open: false,
@@ -75,32 +99,11 @@ export default function RouletteID(props: { data: any }) {
         message: '',
         icon: 'success'
     })
-    useEffect(() => {
-        //join to roulette room
-        socket.emit('join-roulette-room', { id: roulette.id })
-        //new roulette data
-        socket.on('roulette-data', (new_data: RouletteData) => {
-            if (new_data.id === roulette.id) SetRoulette(new_data)
-        })
-        //messages listener 
-        socket.on('message', (res: messagesData) => {
-            let MESSAGES = messagesData
-            MESSAGES.push(res)
-            SetMessagesData([])
-            SetMessagesData(MESSAGES)
-        })
-        //clean up 
-        return () => {
-            socket.off('join-roulette-room')
-            socket.off('roulette-data')
-            socket.off('message')
-        }
-    }, [])
     const _get_roulette_data = (): void => {
-        socket.emit('roulette-data', { id: roulette.id }, (res: RouletteData) => SetRoulette(res))
+        socket.emit('roulette-data', { id: roulette.data.id }, (res: RouletteData) => SetRoulette(res))
     }
     const _start_roulette = (): void => {
-        if (!roulette.startRoulette && !rouletteSettings.isLoading) {
+        if (!rouletteSettings.start && !rouletteSettings.isLoading) {
             Swal.fire({
                 icon: 'question',
                 title: 'Start Roulette',
@@ -139,8 +142,8 @@ export default function RouletteID(props: { data: any }) {
                             Swal.showLoading()
                             try {
                                 //start roulette 
-                                socket.emit('start-roulette', { id: roulette.id }, (res: { status: boolean, title: string, message: string }) => {
-                                    SetRouletteSettings({ ...rouletteSettings, isLoading: false })
+                                socket.emit('start-roulette', { id: roulette.data.id }, (res: { status: boolean, title: string, selected: number }) => {
+                                    SetRouletteSettings({ ...rouletteSettings, start: res.status, isLoading: false, selected: res.selected })
                                     Swal.fire({
                                         toast: true,
                                         icon: res.status ? 'success' : 'info',
@@ -174,13 +177,70 @@ export default function RouletteID(props: { data: any }) {
         setChatData({ ...chatData, open: !chatData.open })
         document.querySelector('#chats').scrollTop = document.querySelector('#chats').scrollHeight
     }
+    const on_stop_spin = (): void => {
+        Swal.fire({
+            icon: 'info',
+            text: `User ${roulette.data.participants[rouletteSettings.selected].userid} has lost.`,
+            timer: 2000,
+            timerProgressBar: true,
+            backdrop: true,
+            allowOutsideClick: false
+        })
+        SetRouletteSettings({ ...rouletteSettings, start: false, isLoading: false })
+        _get_roulette_data()
+        socket.emit('who-is-the-winner', { id: roulette.data.id }, (res: { status: boolean }) => {
+            if (res.status) {
+                _get_roulette_data()
+            }
+        })
+    }
+    const roulette_winner = (userid: string): void => {
+        Swal.close()
+        setTimeout(() => {
+            setshowConfetti(true)
+            setDialog({
+                ...dialog,
+                title: `User ${userid} won the raffle.`,
+                open: true,
+                message: `Prize ${roulette.data.prize}`
+            })
+        }, 500)
+    }
+    const close_dialog = (): void => {
+        setDialog({ ...dialog, open: false })
+        setshowConfetti(false)
+    }
+    useEffect(() => {
+        //join to roulette room
+        socket.emit('join-roulette-room', { id: roulette.data.id })
+        //new roulette data
+        socket.on('roulette-data', (new_data: RouletteData) => {
+            if (new_data.data.id === roulette.data.id) SetRoulette(new_data)
+        })
+        //roulette winner 
+        socket.on('roulette-winner', (res: { rouletteID: string, userid: string }) => roulette_winner(res.userid))
+        //messages listener 
+        socket.on('message', (res: messagesData) => {
+            let MESSAGES = messagesData
+            MESSAGES.push(res)
+            SetMessagesData([])
+            SetMessagesData(MESSAGES)
+        })
+        //clean up 
+        return () => {
+            socket.off('join-roulette-room')
+            socket.off('roulette-data')
+            socket.off('message')
+            socket.off('roulette-winner')
+        }
+    }, [])
     return (
         <>
             <Head>
-                <title>{roulette ? roulette.name : 'Roulette Not Found'}</title>
+                <title>{roulette ? roulette.data.name : 'Roulette Not Found'}</title>
             </Head>
             <ControlNavbar
-                page={roulette.name} />
+                page={roulette.data.name} />
             <ControlMain>
                 <div className='px-2 md:px-0 -mt-2 mb-2 w-full md:w-96'>
                     <Tab.Group>
@@ -226,7 +286,7 @@ export default function RouletteID(props: { data: any }) {
                             </div>
                         </div>
                         <div className="transition-all grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                            {roulette.participants.map((x, i) => (
+                            {roulette.data.participants.map((x, i) => (
                                 <ControlRouletteParticipant
                                     key={i}
                                     socket={socket}
@@ -242,8 +302,8 @@ export default function RouletteID(props: { data: any }) {
                         <div className='flex flex-col lg:flex-row justify-center items-center gap-3 w-full mt-5'>
                             <div className='relative'>
                                 <Wheel
-                                    mustStartSpinning={roulette.startRoulette}
-                                    prizeNumber={roulette.winner}
+                                    mustStartSpinning={rouletteSettings.start}
+                                    prizeNumber={rouletteSettings.selected}
                                     data={roulette.participants}
                                     outerBorderWidth={10}
                                     innerBorderColor={'green'}
@@ -251,8 +311,8 @@ export default function RouletteID(props: { data: any }) {
                                     textColors={['#fff']}
                                     textDistance={70}
                                     spinDuration={0.9}
-                                />
-                                {!roulette.isDone && (
+                                    onStopSpinning={on_stop_spin} />
+                                {!roulette.data.isDone && !rouletteSettings.start && (
                                     <div className='absolute w-full h-full top-0 flex justify-center items-center z-50'>
                                         <button
                                             onClick={_start_roulette}
@@ -262,13 +322,13 @@ export default function RouletteID(props: { data: any }) {
                             </div>
                             <div className='w-full flex justify-center items-center px-4'>
                                 <div className='p-4 dark:bg-zinc-800 w-full md:w-96 shadow-lg rounded-lg'>
-                                    {roulette.isDone && roulette.winner ? (
+                                    {roulette.data.isDone && roulette.data.winner !== null ? (
                                         <>
                                             <div className='text-lg'>Roulette Winner</div>
                                             <div className='flex flex-col gap-1.5 mt-2'>
                                                 <div className='flex items-baseline justify-between'>
                                                     <div className='font-light'>Userid:</div>
-                                                    <div>{roulette.participants[roulette.winner].userid}</div>
+                                                    <div>{roulette.data.participants[roulette.data.winner].userid}</div>
                                                 </div>
                                             </div>
                                         </>
@@ -315,14 +375,17 @@ export default function RouletteID(props: { data: any }) {
                     </div>
                 </div>
             </div>
+            {/* Confetti */}
+            {showConfetti && <Confetti />}
             <ControlRouletteCreateNewPaticipant
+                socket={socket}
                 _get_roulette_data={_get_roulette_data}
-                rouletteID={roulette.id}
+                rouletteID={roulette.data.id}
                 open={createParticipant}
                 closeModal={() => SetCreateParticipant(false)} />
             <_Dialog
                 open={dialog.open}
-                onClose={() => setDialog({ ...dialog, open: false })}
+                onClose={close_dialog}
                 title={dialog.title}
                 message={dialog.message}
                 backdrop={false}
@@ -334,10 +397,15 @@ export default function RouletteID(props: { data: any }) {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
     const USERLOGGED = await getSession(ctx)
     if (USERLOGGED) {
-        const ROULETTE_DATA = await Roulette.findOne({ id: ctx.query['id'] })
+        const ROULETTE_DATA: RouletteData = await Roulette.findOne({ id: ctx.query['id'] })
         if (ROULETTE_DATA) {
+            let participants: any[] = []
+            ROULETTE_DATA.participants.map((x) => {
+                if (!x.removed) participants.push(x)
+            })
             return {
                 props: {
+                    participants: JSON.stringify(participants),
                     data: JSON.stringify(ROULETTE_DATA)
                 }
             }

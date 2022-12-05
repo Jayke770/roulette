@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next"
 import { Roulette, User } from '../../../../models'
 import moment from 'moment'
-import { getSession } from "next-auth/react"
 import { Color, Config } from "../../../../lib"
 interface ExtendedNextApiRequest extends NextApiRequest {
     body: {
@@ -32,10 +31,9 @@ type roulettedata = {
     __v?: 0
 }
 export default async function NewParticipant(req: ExtendedNextApiRequest, res: NextApiResponse) {
-    const { method, body: { userid, rouletteid } } = req
-    const USERLOGGED = await getSession({ req })
+    const { method, body: { userid, rouletteid }, headers } = req
     try {
-        if (method === 'POST' && USERLOGGED) {
+        if (method === 'POST' && headers['api-key'] === process.env.API_KEY) {
             await Roulette.findOne({ id: { $eq: rouletteid } }).then(async (roulettedata: roulettedata) => {
                 if (roulettedata) {
                     if (roulettedata.isDone) {
@@ -82,23 +80,6 @@ export default async function NewParticipant(req: ExtendedNextApiRequest, res: N
                                     message: `User ID Not Found`
                                 })
                             }
-                            //insert new participant 
-                            const NEW_PARTICIPANT = {
-                                id: Config.id(12),
-                                userid: userid,
-                                option: userid,
-                                style: {
-                                    backgroundColor: Color.dark()
-                                },
-                                created: moment().format()
-                            }
-                            await Roulette.updateOne({ id: { $eq: rouletteid } }, { $push: { participants: NEW_PARTICIPANT } })
-                            //send response
-                            return res.send({
-                                status: true,
-                                title: 'Roulette Participants Successfully Updated',
-                                message: `Total Participants: ${roulettedata.participants.length + 1}`
-                            })
                         }
                     }
                 } else {
