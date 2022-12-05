@@ -54,34 +54,6 @@ export default async function NewParticipant(req: ExtendedNextApiRequest, res: N
                                 message: 'This userid is already a participant.'
                             })
                         } else {
-                            //check if the participant is a available in users collection
-                            const isUser = await User.findOne({ 'info.id': { $eq: userid } }, { info: 1 })
-                            if (isUser) {
-                                //insert new participant 
-                                const NEW_PARTICIPANT = {
-                                    id: Config.id(12),
-                                    userid: userid,
-                                    option: userid,
-                                    removed: false,
-                                    style: {
-                                        backgroundColor: Color.default()
-                                    },
-                                    created: moment().format()
-                                }
-                                await Roulette.updateOne({ id: { $eq: rouletteid } }, { $push: { participants: NEW_PARTICIPANT } })
-                                //send response
-                                return res.send({
-                                    status: true,
-                                    title: 'Roulette Participants Successfully Updated',
-                                    message: `Total Participants: ${roulettedata.participants.length + 1}`
-                                })
-                            } else {
-                                return res.send({
-                                    status: false,
-                                    title: 'Opppss',
-                                    message: `User ID Not Found`
-                                })
-                            }
                             //insert new participant 
                             const NEW_PARTICIPANT = {
                                 id: Config.id(12),
