@@ -247,9 +247,9 @@ export default function RouletteID(props: { data: any }) {
                                     data={roulette.participants}
                                     outerBorderWidth={10}
                                     innerBorderColor={'green'}
-                                    fontSize={13}
+                                    fontSize={9}
                                     textColors={['#fff']}
-                                    textDistance={40}
+                                    textDistance={70}
                                     spinDuration={0.9}
                                 />
                                 {!roulette.isDone && (
